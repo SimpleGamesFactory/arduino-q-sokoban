@@ -8,6 +8,7 @@
 #include "SGF/FastILI9341.h"
 #include "SGF/Font5x7.h"
 #include "SGF/Game.h"
+#include "SGF/InputPin.h"
 #include "SGF/Scene.h"
 #include "SGF/Sprites.h"
 #include "SGF/TileFlusher.h"
@@ -88,6 +89,11 @@ private:
   uint8_t pinUp = 0;
   uint8_t pinDown = 0;
   uint8_t pinFire = 0;
+  DebouncedInputPin leftPinInput;
+  DebouncedInputPin rightPinInput;
+  DebouncedInputPin upPinInput;
+  DebouncedInputPin downPinInput;
+  DebouncedInputPin firePinInput;
 
   DigitalAction leftAction;
   DigitalAction rightAction;

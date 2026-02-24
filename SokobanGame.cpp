@@ -157,6 +157,11 @@ SokobanGame::SokobanGame(FastILI9341& gfxRef,
     pinUp(upPinValue),
     pinDown(downPinValue),
     pinFire(firePinValue),
+    leftPinInput(leftPin, true, 18),
+    rightPinInput(rightPin, true, 18),
+    upPinInput(upPinValue, true, 18),
+    downPinInput(downPinValue, true, 18),
+    firePinInput(firePinValue, true, 18),
     sceneSwitcher(),
     titleScene(*this),
     playingScene(*this),
@@ -170,17 +175,23 @@ void SokobanGame::setup() {
 }
 
 void SokobanGame::onSetup() {
-  pinMode(pinLeft, INPUT_PULLUP);
-  pinMode(pinRight, INPUT_PULLUP);
-  pinMode(pinUp, INPUT_PULLUP);
-  pinMode(pinDown, INPUT_PULLUP);
-  pinMode(pinFire, INPUT_PULLUP);
+  leftPinInput.begin(INPUT_PULLUP);
+  rightPinInput.begin(INPUT_PULLUP);
+  upPinInput.begin(INPUT_PULLUP);
+  downPinInput.begin(INPUT_PULLUP);
+  firePinInput.begin(INPUT_PULLUP);
 
-  leftAction.reset(digitalRead(pinLeft) == LOW);
-  rightAction.reset(digitalRead(pinRight) == LOW);
-  upAction.reset(digitalRead(pinUp) == LOW);
-  downAction.reset(digitalRead(pinDown) == LOW);
-  fireAction.reset(digitalRead(pinFire) == LOW);
+  leftPinInput.resetFromPin();
+  rightPinInput.resetFromPin();
+  upPinInput.resetFromPin();
+  downPinInput.resetFromPin();
+  firePinInput.resetFromPin();
+
+  leftAction.reset(leftPinInput.pressed());
+  rightAction.reset(rightPinInput.pressed());
+  upAction.reset(upPinInput.pressed());
+  downAction.reset(downPinInput.pressed());
+  fireAction.reset(firePinInput.pressed());
   fireConfirm.reset();
 
   bool ok = gfx.begin(DEFAULT_SPI_HZ);
@@ -197,11 +208,11 @@ void SokobanGame::onSetup() {
 }
 
 void SokobanGame::onPhysics(float delta) {
-  leftAction.update(digitalRead(pinLeft) == LOW);
-  rightAction.update(digitalRead(pinRight) == LOW);
-  upAction.update(digitalRead(pinUp) == LOW);
-  downAction.update(digitalRead(pinDown) == LOW);
-  fireAction.update(digitalRead(pinFire) == LOW);
+  leftAction.update(leftPinInput.update());
+  rightAction.update(rightPinInput.update());
+  upAction.update(upPinInput.update());
+  downAction.update(downPinInput.update());
+  fireAction.update(firePinInput.update());
   sceneSwitcher.onPhysics(delta);
 }
 
