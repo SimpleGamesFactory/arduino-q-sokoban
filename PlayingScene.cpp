@@ -5,7 +5,7 @@
 PlayingScene::PlayingScene(SokobanGame& gameRef) : game(gameRef) {}
 
 void PlayingScene::onEnter() {
-  game.setNeedsRedraw();
+  // `loadLevel()` marks dirty regions before entering the scene.
 }
 
 void PlayingScene::onPhysics(float delta) {
@@ -34,15 +34,10 @@ void PlayingScene::onPhysics(float delta) {
     moved = game.tryMove(0, 1);
   }
 
-  if (moved) {
-    game.setNeedsRedraw();
-  }
+  (void)moved;
 }
 
 void PlayingScene::onProcess(float delta) {
   (void)delta;
-  if (game.needsRedraw) {
-    game.renderPlayingScreen();
-    game.needsRedraw = false;
-  }
+  game.flushDirty();
 }

@@ -4,9 +4,13 @@
 
 #include "SGF/Actions.h"
 #include "SGF/Color565.h"
+#include "SGF/DirtyRects.h"
 #include "SGF/FastILI9341.h"
+#include "SGF/Font5x7.h"
 #include "SGF/Game.h"
 #include "SGF/Scene.h"
+#include "SGF/Sprites.h"
+#include "SGF/TileFlusher.h"
 #include "GameOverScene.h"
 #include "PlayingScene.h"
 #include "TitleScene.h"
@@ -38,9 +42,12 @@ private:
   static constexpr int SCREEN_W = 320;
   static constexpr int SCREEN_H = 240;
   static constexpr int TILE_SIZE = 20;
+  static constexpr int SPRITE_SIZE = 16;
   static constexpr int BOARD_MAX_W = 14;
   static constexpr int BOARD_MAX_H = 10;
   static constexpr int HUD_H = 44;
+  static constexpr int MAX_TILE_W = 64;
+  static constexpr int MAX_TILE_H = 64;
   static constexpr uint8_t LEVEL_COUNT = 3;
   static constexpr float LEVEL_SOLVED_DELAY_S = 0.75f;
 
@@ -70,6 +77,12 @@ private:
   static constexpr uint16_t COLOR_GO_TITLE = Color565::rgb(255, 112, 112);
 
   FastILI9341& gfx;
+  DirtyRects dirty;
+  TileFlusher flusher;
+  SpriteLayer sprites;
+  uint16_t regionBuf[MAX_TILE_W * MAX_TILE_H]{};
+  uint16_t boxSpritePixels[SPRITE_SIZE * SPRITE_SIZE]{};
+  uint16_t playerSpritePixels[SPRITE_SIZE * SPRITE_SIZE]{};
   uint8_t pinLeft = 0;
   uint8_t pinRight = 0;
   uint8_t pinUp = 0;
@@ -103,9 +116,16 @@ private:
   uint32_t levelMoves = 0;
   uint32_t finalMoves = 0;
 
-  bool needsRedraw = true;
   bool levelSolved = false;
   float levelSolvedTimer = 0.0f;
+  char hudLevelText[12]{};
+  char hudMovesText[16]{};
+  char hudTotalText[16]{};
+  char hudStatusText[16]{};
+  char overlayTitleText[24]{};
+  char overlaySubText[24]{};
+  int overlayTitleX = 0;
+  int overlaySubX = 0;
 
   friend class TitleScene;
   friend class PlayingScene;
@@ -133,9 +153,26 @@ private:
   void updateLevelSolvedState();
 
   void renderTitleScreen();
-  void renderPlayingScreen();
   void renderGameOverScreen();
-  void renderHud();
-  void drawCell(int gx, int gy, char cell);
-  void setNeedsRedraw();
+  void refreshHudTexts();
+  void refreshOverlayTexts();
+  void markHudLevelDirty();
+  void markHudMovesDirty();
+  void markHudTotalDirty();
+  void markHudStatusDirty();
+  void markOverlayDirty();
+  void markCellDirty(int gx, int gy);
+  void markBoardFrameDirty();
+  void markRectDirty(int x, int y, int w, int h);
+  void invalidatePlayingScreen();
+  void flushDirty();
+  void buildSpritePixels();
+  void initSpriteSlots();
+  void syncSpritesFromBoard();
+  uint16_t pixelAt(int x, int y) const;
+  uint16_t hudPixelAt(int x, int y) const;
+  uint16_t boardPixelAt(int x, int y) const;
+  uint16_t cellPixelAt(char cell, int gx, int gy, int lx, int ly) const;
+  uint16_t overlayPixelAt(int x, int y) const;
+  void renderRegionToBuffer(int x0, int y0, int w, int h, uint16_t* buf);
 };
