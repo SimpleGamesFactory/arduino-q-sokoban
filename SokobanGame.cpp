@@ -7,31 +7,96 @@
 namespace {
 
 const char* const LEVEL1_ROWS[] = {
+  "#####",
+  "#@$.#",
+  "#####"
+};
+
+const char* const LEVEL2_ROWS[] = {
+  "#######",
+  "#  .  #",
+  "#  $  #",
+  "#  @  #",
+  "#     #",
+  "#######"
+};
+
+const char* const LEVEL3_ROWS[] = {
   "########",
-  "#  .   #",
-  "#  $   #",
+  "# .  . #",
+  "# $$   #",
   "#  @   #",
-  "#      #",
   "#      #",
   "########"
 };
 
-const char* const LEVEL2_ROWS[] = {
+const char* const LEVEL4_ROWS[] = {
   "##########",
-  "# .   .  #",
-  "# $   $  #",
+  "#  . .   #",
+  "#  $ $   #",
   "#   @    #",
   "#        #",
   "##########"
 };
 
-const char* const LEVEL3_ROWS[] = {
+const char* const LEVEL5_ROWS[] = {
+  "###########",
+  "# . . .   #",
+  "# $ $ $   #",
+  "#    @    #",
+  "#         #",
+  "###########"
+};
+
+const char* const LEVEL6_ROWS[] = {
   "############",
-  "# .   .   .#",
-  "# $   $   $#",
-  "#     @    #",
+  "# .   .    #",
+  "# $ # $  $ #",
+  "#   #   @  #",
+  "# . # .  $ #",
   "#          #",
   "#          #",
+  "############"
+};
+
+const char* const LEVEL7_ROWS[] = {
+  "##############",
+  "# . . .      #",
+  "# $ $ $      #",
+  "#    @       #",
+  "# . .        #",
+  "# $ $        #",
+  "##############"
+};
+
+const char* const LEVEL8_ROWS[] = {
+  "##############",
+  "# .  .  .    #",
+  "# $  $  $    #",
+  "#            #",
+  "# .  .  . @  #",
+  "# $  $  $    #",
+  "##############"
+};
+
+const char* const LEVEL9_ROWS[] = {
+  "##############",
+  "# . . . .    #",
+  "# $ $ $ $    #",
+  "#            #",
+  "# . . . @    #",
+  "# $ $ $      #",
+  "##############"
+};
+
+const char* const LEVEL10_ROWS[] = {
+  "##############",
+  "# . . .      #",
+  "# $ $ $      #",
+  "#   ####     #",
+  "# . . .   @  #",
+  "# $ $ $      #",
+  "#      . $   #",
   "############"
 };
 
@@ -63,9 +128,16 @@ int textHeight(int scale) {
 }  // namespace
 
 const SokobanGame::LevelDef SokobanGame::LEVELS[LEVEL_COUNT] = {
-  {8, 7, LEVEL1_ROWS},
-  {10, 6, LEVEL2_ROWS},
-  {12, 7, LEVEL3_ROWS},
+  {5, 3, LEVEL1_ROWS},
+  {7, 6, LEVEL2_ROWS},
+  {8, 6, LEVEL3_ROWS},
+  {10, 6, LEVEL4_ROWS},
+  {11, 6, LEVEL5_ROWS},
+  {12, 8, LEVEL6_ROWS},
+  {14, 7, LEVEL7_ROWS},
+  {14, 7, LEVEL8_ROWS},
+  {14, 7, LEVEL9_ROWS},
+  {14, 8, LEVEL10_ROWS},
 };
 
 SokobanGame::SokobanGame(FastILI9341& gfxRef,
@@ -360,7 +432,7 @@ void SokobanGame::renderTitleScreen() {
   gfx.fillRect565(14, gfx.height() - 18, gfx.width() - 28, 4, COLOR_ACCENT);
 
   gfx.drawCenteredText(46, "UNOQ SOKOBAN", 4, COLOR_TEXT);
-  gfx.drawCenteredText(90, "3 PLANSZE", 2, COLOR_ACCENT);
+  gfx.drawCenteredText(90, "10 PLANSZ", 2, COLOR_ACCENT);
   gfx.drawCenteredText(118, "L/R/U/D - RUCH", 2, COLOR_TEXT);
   gfx.drawCenteredText(144, "FIRE - START", 2, COLOR_TEXT);
   gfx.drawCenteredText(170, "FIRE W GRZE - RESTART", 1, COLOR_TEXT_DIM);

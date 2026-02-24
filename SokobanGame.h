@@ -48,7 +48,7 @@ private:
   static constexpr int HUD_H = 44;
   static constexpr int MAX_TILE_W = 64;
   static constexpr int MAX_TILE_H = 64;
-  static constexpr uint8_t LEVEL_COUNT = 3;
+  static constexpr uint8_t LEVEL_COUNT = 10;
   static constexpr float LEVEL_SOLVED_DELAY_S = 0.75f;
 
   static constexpr uint16_t COLOR_BG = Color565::rgb(8, 12, 18);
