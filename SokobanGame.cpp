@@ -13,91 +13,92 @@ const char* const LEVEL1_ROWS[] = {
 };
 
 const char* const LEVEL2_ROWS[] = {
-  "#######",
-  "#  .  #",
-  "#  $  #",
-  "#  @  #",
-  "#     #",
-  "#######"
+  "  ####",
+  "###  ####",
+  "#     $ #",
+  "# #  #$ #",
+  "# . .#@ #",
+  "#########"
 };
 
 const char* const LEVEL3_ROWS[] = {
   "########",
-  "# .  . #",
-  "# $$   #",
-  "#  @   #",
+  "#      #",
+  "# .**$@#",
+  "#      #",
+  "#####  #",
+  "    ####"
+};
+
+const char* const LEVEL4_ROWS[] = {
+  " #######",
+  " #     #",
+  " # .$. #",
+  "## $@$ #",
+  "#  .$. #",
   "#      #",
   "########"
 };
 
-const char* const LEVEL4_ROWS[] = {
-  "##########",
-  "#  . .   #",
-  "#  $ $   #",
-  "#   @    #",
-  "#        #",
-  "##########"
-};
-
 const char* const LEVEL5_ROWS[] = {
-  "###########",
-  "# . . .   #",
-  "# $ $ $   #",
-  "#    @    #",
-  "#         #",
-  "###########"
+  "###### #####",
+  "#    ###   #",
+  "# $$     #@#",
+  "# $ #...   #",
+  "#   ########",
+  "#####"
 };
 
 const char* const LEVEL6_ROWS[] = {
-  "############",
-  "# .   .    #",
-  "# $ # $  $ #",
-  "#   #   @  #",
-  "# . # .  $ #",
-  "#          #",
-  "#          #",
-  "############"
+  "####",
+  "# .#",
+  "#  ###",
+  "#*@  #",
+  "#  $ #",
+  "#  ###",
+  "####"
 };
 
 const char* const LEVEL7_ROWS[] = {
-  "##############",
-  "# . . .      #",
-  "# $ $ $      #",
-  "#    @       #",
-  "# . .        #",
-  "# $ $        #",
-  "##############"
+  "######",
+  "#    #",
+  "# #@ #",
+  "# $* #",
+  "# .* #",
+  "#    #",
+  "######"
 };
 
 const char* const LEVEL8_ROWS[] = {
-  "##############",
-  "# .  .  .    #",
-  "# $  $  $    #",
-  "#            #",
-  "# .  .  . @  #",
-  "# $  $  $    #",
-  "##############"
+  "#######",
+  "#     #",
+  "# .$. #",
+  "# $.$ #",
+  "# .$. #",
+  "# $.$ #",
+  "#  @  #",
+  "#######"
 };
 
 const char* const LEVEL9_ROWS[] = {
-  "##############",
-  "# . . . .    #",
-  "# $ $ $ $    #",
-  "#            #",
-  "# . . . @    #",
-  "# $ $ $      #",
-  "##############"
+  "#####",
+  "#.  ##",
+  "#@$$ #",
+  "##   #",
+  " ##  #",
+  "  ##.#",
+  "   ###"
 };
 
 const char* const LEVEL10_ROWS[] = {
-  "##############",
-  "# . . .      #",
-  "# $ $ $      #",
-  "#   ####     #",
-  "# . . .   @  #",
-  "# $ $ $      #",
-  "#      . $   #",
-  "############"
+  "      #####",
+  "      #.  #",
+  "      #.# #",
+  "#######.# #",
+  "# @ $ $ $ #",
+  "# # # # ###",
+  "#       #",
+  "#########"
 };
 
 constexpr int HUD_TITLE_X = 8;
@@ -129,15 +130,15 @@ int textHeight(int scale) {
 
 const SokobanGame::LevelDef SokobanGame::LEVELS[LEVEL_COUNT] = {
   {5, 3, LEVEL1_ROWS},
-  {7, 6, LEVEL2_ROWS},
+  {9, 6, LEVEL2_ROWS},
   {8, 6, LEVEL3_ROWS},
-  {10, 6, LEVEL4_ROWS},
-  {11, 6, LEVEL5_ROWS},
-  {12, 8, LEVEL6_ROWS},
-  {14, 7, LEVEL7_ROWS},
-  {14, 7, LEVEL8_ROWS},
-  {14, 7, LEVEL9_ROWS},
-  {14, 8, LEVEL10_ROWS},
+  {8, 7, LEVEL4_ROWS},
+  {12, 6, LEVEL5_ROWS},
+  {6, 7, LEVEL6_ROWS},
+  {6, 7, LEVEL7_ROWS},
+  {7, 8, LEVEL8_ROWS},
+  {6, 7, LEVEL9_ROWS},
+  {11, 8, LEVEL10_ROWS},
 };
 
 SokobanGame::SokobanGame(FastILI9341& gfxRef,
@@ -233,8 +234,9 @@ void SokobanGame::loadLevel(uint8_t levelIndex) {
   bool playerFound = false;
   for (int y = 0; y < boardH; y++) {
     const char* row = LEVELS[levelIndex].rows[y];
+    size_t rowLen = strlen(row);
     for (int x = 0; x < boardW; x++) {
-      char cell = row[x];
+      char cell = (x < (int)rowLen) ? row[x] : ' ';
       if (cell == '\0') {
         cell = ' ';
       }
