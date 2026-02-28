@@ -1,9 +1,15 @@
+// sgf.name: UnoQ-Sokoban
+// sgf.boards: unoq, esp32
+// sgf.default_board: esp32
+// sgf.port.unoq: /dev/ttyACM0
+// sgf.port.esp32: /dev/ttyUSB0
+
 // Define SGF_HW_PRESET here or pass it via -DSGF_HW_PRESET=...
 // Examples:
-//#define SGF_HW_PRESET SGF_HW_PRESET_UNOQ_ILI9341_320X240
-#define SGF_HW_PRESET SGF_HW_PRESET_ESP32_ST7789_240X240
+// #define SGF_HW_PRESET SGF_HW_PRESET_UNOQ_ILI9341_320X240
+// #define SGF_HW_PRESET SGF_HW_PRESET_ESP32_ST7789_240X240
 
-#include "vendor/sgf-hardware-presets/SGFHardwarePresets.h"
+#include "SGFHardwarePresets.h"
 #include "SokobanGame.h"
 
 auto hardware = SGFHardwareProfile::makeRuntime();
