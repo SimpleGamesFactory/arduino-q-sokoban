@@ -20,3 +20,8 @@ Minimal C++/Arduino guidelines for this repo:
 - Reuse common math/value types (e.g. `Vector2` for 2D position/size) instead of duplicating one-off `Position`/`Size` structs across classes.
 - If object state change has invariants/side effects (e.g. syncing a bound sprite), the state must be changed through the object API (`setPosition`, `setX`, etc.), not by external direct field mutation.
 - Do not add central "sync all objects" sweeps to compensate for leaked state mutation. Update dependent state at the point where the owning object state changes.
+- Hardware target selection must be explicit: define `SGF_HW_PRESET` in the sketch before including preset headers, or pass it from the build system with `-DSGF_HW_PRESET=...`.
+- Missing `SGF_HW_PRESET` must fail compilation; do not add silent board-based/default fallback selection in game code.
+- Hardware-specific preset knowledge (available presets, MCU/panel pairing, pinouts, default display setup) belongs in `vendor/sgf-hardware-presets`, not in the game bootstrap or gameplay code.
+- Game code should consume neutral SGF hardware data types (for example `SGFHardware::HardwareProfile`) rather than introduce game-specific config structs for display/input wiring.
+- Keep `.ino` as a thin bootstrap: instantiate the selected profile, initialize display hardware, and start the game; avoid large `#if/#elif` target-selection blocks in the sketch.

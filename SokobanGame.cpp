@@ -6,6 +6,10 @@
 
 namespace {
 
+void fillRectOnDisplay(void* ctx, int x, int y, int w, int h, uint16_t color565) {
+  static_cast<IScreen*>(ctx)->fillRect565(x, y, w, h, color565);
+}
+
 const char* const LEVEL1_ROWS[] = {
   "#####",
   "#@$.#",
@@ -101,29 +105,24 @@ const char* const LEVEL10_ROWS[] = {
   "#########"
 };
 
-constexpr int HUD_TITLE_X = 8;
 constexpr int HUD_TITLE_Y = 8;
-constexpr int HUD_LEVEL_X = 120;
 constexpr int HUD_LEVEL_Y = 8;
-constexpr int HUD_MOVES_X = 8;
 constexpr int HUD_MOVES_Y = 24;
-constexpr int HUD_TOTAL_X = 120;
 constexpr int HUD_TOTAL_Y = 24;
-constexpr int HUD_STATUS_X = 220;
 constexpr int HUD_STATUS_Y = 24;
-
-constexpr int OVERLAY_W = 224;
-constexpr int OVERLAY_H = 52;
 constexpr int OVERLAY_TEXT1_Y_OFF = 10;
 constexpr int OVERLAY_TEXT2_Y_OFF = 30;
 
-constexpr int FONT_W = 5;
-constexpr int FONT_H = 7;
 constexpr int BOX_SPRITE_SLOT_COUNT = SpriteLayer::kMaxSprites - 1;
 constexpr int PLAYER_SPRITE_SLOT = SpriteLayer::kMaxSprites - 1;
 
-int textHeight(int scale) {
-  return FONT_H * scale;
+int fitCenteredScale(int screenWidth, const char* text, int maxScale, int margin) {
+  for (int scale = maxScale; scale >= 1; --scale) {
+    if (Font5x7::textWidth(text, scale) <= screenWidth - margin * 2) {
+      return scale;
+    }
+  }
+  return 1;
 }
 
 }  // namespace
@@ -141,31 +140,27 @@ const SokobanGame::LevelDef SokobanGame::LEVELS[LEVEL_COUNT] = {
   {11, 8, LEVEL10_ROWS},
 };
 
-SokobanGame::SokobanGame(FastILI9341& gfxRef,
-                         uint8_t leftPin,
-                         uint8_t rightPin,
-                         uint8_t upPinValue,
-                         uint8_t downPinValue,
-                         uint8_t firePinValue)
+SokobanGame::SokobanGame(
+  IRenderTarget& renderTargetRef,
+  IScreen& screenRef,
+  const SGFHardware::HardwareProfile& hardwareProfileIn)
   : Game(FRAME_DEFAULT_STEP_US, FRAME_MAX_STEP_US),
-    gfx(gfxRef),
+    renderTarget(renderTargetRef),
+    screen(screenRef),
+    hardwareProfile(hardwareProfileIn),
     dirty(),
     flusher(dirty, MAX_TILE_W, MAX_TILE_H),
     sprites(),
-    pinLeft(leftPin),
-    pinRight(rightPin),
-    pinUp(upPinValue),
-    pinDown(downPinValue),
-    pinFire(firePinValue),
-    leftPinInput(leftPin, true, 18),
-    rightPinInput(rightPin, true, 18),
-    upPinInput(upPinValue, true, 18),
-    downPinInput(downPinValue, true, 18),
-    firePinInput(firePinValue, true, 18),
     sceneSwitcher(),
     titleScene(*this),
     playingScene(*this),
     gameOverScene(*this) {
+  pinLeft = hardwareProfile.input.left;
+  pinRight = hardwareProfile.input.right;
+  pinUp = hardwareProfile.input.up;
+  pinDown = hardwareProfile.input.down;
+  pinFire = hardwareProfile.input.fire;
+
   buildSpritePixels();
   initSpriteSlots();
 }
@@ -175,6 +170,11 @@ void SokobanGame::setup() {
 }
 
 void SokobanGame::onSetup() {
+  leftPinInput.attach(pinLeft, true);
+  rightPinInput.attach(pinRight, true);
+  upPinInput.attach(pinUp, true);
+  downPinInput.attach(pinDown, true);
+  firePinInput.attach(pinFire, true);
   leftPinInput.begin(INPUT_PULLUP);
   rightPinInput.begin(INPUT_PULLUP);
   upPinInput.begin(INPUT_PULLUP);
@@ -193,14 +193,6 @@ void SokobanGame::onSetup() {
   downAction.reset(downPinInput.pressed());
   fireAction.reset(firePinInput.pressed());
   fireConfirm.reset();
-
-  bool ok = gfx.begin(DEFAULT_SPI_HZ);
-  if (!ok) {
-    while (1) {
-      delay(1000);
-    }
-  }
-  gfx.screenRotation(DEFAULT_ROTATION);
 
   dirty.clear();
   sceneSwitcher.setInitial(titleScene);
@@ -271,19 +263,7 @@ void SokobanGame::loadLevel(uint8_t levelIndex) {
     }
   }
 
-  int boardPxW = boardW * TILE_SIZE;
-  int boardPxH = boardH * TILE_SIZE;
-  boardX0 = (gfx.width() - boardPxW) / 2;
-  if (boardX0 < 4) {
-    boardX0 = 4;
-  }
-  int contentTop = HUD_H + 4;
-  int contentH = gfx.height() - contentTop - 4;
-  boardY0 = contentTop + (contentH - boardPxH) / 2;
-  if (boardY0 < contentTop) {
-    boardY0 = contentTop;
-  }
-
+  updateBoardLayout();
   syncSpritesFromBoard();
   refreshHudTexts();
   refreshOverlayTexts();
@@ -437,78 +417,103 @@ void SokobanGame::updateLevelSolvedState() {
 }
 
 void SokobanGame::renderTitleScreen() {
-  dirty.clear();
-  gfx.fillScreen565(COLOR_BG);
-  gfx.fillRect565(14, 16, gfx.width() - 28, 4, COLOR_ACCENT);
-  gfx.fillRect565(14, 24, gfx.width() - 28, 2, COLOR_PANEL_LINE);
-  gfx.fillRect565(14, gfx.height() - 26, gfx.width() - 28, 2, COLOR_PANEL_LINE);
-  gfx.fillRect565(14, gfx.height() - 18, gfx.width() - 28, 4, COLOR_ACCENT);
+  const int titleScale = fitCenteredScale(renderTarget.width(), "UNOQ SOKOBAN", 4, 12);
 
-  gfx.drawCenteredText(46, "UNOQ SOKOBAN", 4, COLOR_TEXT);
-  gfx.drawCenteredText(90, "10 PLANSZ", 2, COLOR_ACCENT);
-  gfx.drawCenteredText(118, "L/R/U/D - RUCH", 2, COLOR_TEXT);
-  gfx.drawCenteredText(144, "FIRE - START", 2, COLOR_TEXT);
-  gfx.drawCenteredText(170, "FIRE W GRZE - RESTART", 1, COLOR_TEXT_DIM);
-  gfx.drawCenteredText(194, "PRZENIES SKRZYNKI NA CELE", 1, COLOR_TEXT_DIM);
+  dirty.clear();
+  screen.fillScreen565(COLOR_BG);
+  screen.fillRect565(14, 16, renderTarget.width() - 28, 4, COLOR_ACCENT);
+  screen.fillRect565(14, 24, renderTarget.width() - 28, 2, COLOR_PANEL_LINE);
+  screen.fillRect565(
+    14, renderTarget.height() - 26, renderTarget.width() - 28, 2, COLOR_PANEL_LINE);
+  screen.fillRect565(
+    14, renderTarget.height() - 18, renderTarget.width() - 28, 4, COLOR_ACCENT);
+
+  Font5x7::drawCenteredText(
+    renderTarget.width(), 46, "UNOQ SOKOBAN", titleScale, COLOR_TEXT, &screen, fillRectOnDisplay);
+  Font5x7::drawCenteredText(
+    renderTarget.width(), 90, "10 PLANSZ", 2, COLOR_ACCENT, &screen, fillRectOnDisplay);
+  Font5x7::drawCenteredText(
+    renderTarget.width(), 118, "L/R/U/D - RUCH", 2, COLOR_TEXT, &screen, fillRectOnDisplay);
+  Font5x7::drawCenteredText(
+    renderTarget.width(), 144, "FIRE - START", 2, COLOR_TEXT, &screen, fillRectOnDisplay);
+  Font5x7::drawCenteredText(
+    renderTarget.width(), 170, "FIRE W GRZE - RESTART", 1, COLOR_TEXT_DIM,
+    &screen, fillRectOnDisplay);
+  Font5x7::drawCenteredText(
+    renderTarget.width(), 194, "PRZENIES SKRZYNKI NA CELE", 1, COLOR_TEXT_DIM,
+    &screen, fillRectOnDisplay);
 }
 
 void SokobanGame::renderGameOverScreen() {
   dirty.clear();
   char movesBuf[24];
   char levelsBuf[24];
+  const int titleScale = fitCenteredScale(renderTarget.width(), "GAME OVER", 4, 12);
   snprintf(movesBuf, sizeof(movesBuf), "%lu", (unsigned long)finalMoves);
   snprintf(levelsBuf, sizeof(levelsBuf), "%u / %u", (unsigned)LEVEL_COUNT, (unsigned)LEVEL_COUNT);
 
-  gfx.fillScreen565(COLOR_GO_BG);
-  gfx.fillRect565(18, 18, gfx.width() - 36, 3, COLOR_GO_LINE);
-  gfx.fillRect565(18, gfx.height() - 21, gfx.width() - 36, 3, COLOR_GO_LINE);
+  screen.fillScreen565(COLOR_GO_BG);
+  screen.fillRect565(18, 18, renderTarget.width() - 36, 3, COLOR_GO_LINE);
+  screen.fillRect565(18, renderTarget.height() - 21, renderTarget.width() - 36, 3, COLOR_GO_LINE);
 
-  gfx.drawCenteredText(48, "GAME OVER", 4, COLOR_GO_TITLE);
-  gfx.drawCenteredText(96, "UKONCZONE PLANSZE", 1, COLOR_TEXT_DIM);
-  gfx.drawCenteredText(112, levelsBuf, 3, COLOR_TEXT);
-  gfx.drawCenteredText(152, "RUCHY", 1, COLOR_TEXT_DIM);
-  gfx.drawCenteredText(168, movesBuf, 3, COLOR_ACCENT);
-  gfx.drawCenteredText(206, "FIRE - MENU", 2, COLOR_TEXT);
+  Font5x7::drawCenteredText(
+    renderTarget.width(), 48, "GAME OVER", titleScale, COLOR_GO_TITLE, &screen, fillRectOnDisplay);
+  Font5x7::drawCenteredText(
+    renderTarget.width(), 96, "UKONCZONE PLANSZE", 1, COLOR_TEXT_DIM,
+    &screen, fillRectOnDisplay);
+  Font5x7::drawCenteredText(
+    renderTarget.width(), 112, levelsBuf, 3, COLOR_TEXT, &screen, fillRectOnDisplay);
+  Font5x7::drawCenteredText(
+    renderTarget.width(), 152, "RUCHY", 1, COLOR_TEXT_DIM, &screen, fillRectOnDisplay);
+  Font5x7::drawCenteredText(
+    renderTarget.width(), 168, movesBuf, 3, COLOR_ACCENT, &screen, fillRectOnDisplay);
+  Font5x7::drawCenteredText(
+    renderTarget.width(), 206, "FIRE - MENU", 2, COLOR_TEXT, &screen, fillRectOnDisplay);
 }
 
 void SokobanGame::refreshHudTexts() {
   char buf[24];
+  bool changed = false;
 
   snprintf(buf, sizeof(buf), "LVL %u/%u", (unsigned)(currentLevel + 1), (unsigned)LEVEL_COUNT);
   if (strcmp(hudLevelText, buf) != 0) {
     strncpy(hudLevelText, buf, sizeof(hudLevelText) - 1);
     hudLevelText[sizeof(hudLevelText) - 1] = '\0';
-    markHudLevelDirty();
+    changed = true;
   }
 
   snprintf(buf, sizeof(buf), "MOVES %lu", (unsigned long)levelMoves);
   if (strcmp(hudMovesText, buf) != 0) {
     strncpy(hudMovesText, buf, sizeof(hudMovesText) - 1);
     hudMovesText[sizeof(hudMovesText) - 1] = '\0';
-    markHudMovesDirty();
+    changed = true;
   }
 
   snprintf(buf, sizeof(buf), "TOTAL %lu", (unsigned long)totalMoves);
   if (strcmp(hudTotalText, buf) != 0) {
     strncpy(hudTotalText, buf, sizeof(hudTotalText) - 1);
     hudTotalText[sizeof(hudTotalText) - 1] = '\0';
-    markHudTotalDirty();
+    changed = true;
   }
 
   const char* status = levelSolved ? "OK" : "FIRE=RESET";
   if (strcmp(hudStatusText, status) != 0) {
     strncpy(hudStatusText, status, sizeof(hudStatusText) - 1);
     hudStatusText[sizeof(hudStatusText) - 1] = '\0';
-    markHudStatusDirty();
+    changed = true;
+  }
+
+  if (changed) {
+    updateHudLayout();
+    markHudDirty();
   }
 }
 
 void SokobanGame::refreshOverlayTexts() {
   overlayTitleText[0] = '\0';
   overlaySubText[0] = '\0';
-  overlayTitleX = 0;
-  overlaySubX = 0;
   if (!levelSolved) {
+    updateOverlayLayout();
     return;
   }
 
@@ -523,44 +528,97 @@ void SokobanGame::refreshOverlayTexts() {
   }
   overlaySubText[sizeof(overlaySubText) - 1] = '\0';
 
-  overlayTitleX = (gfx.width() - Font5x7::textWidth(overlayTitleText, 2)) / 2;
-  overlaySubX = (gfx.width() - Font5x7::textWidth(overlaySubText, 1)) / 2;
+  updateOverlayLayout();
 }
 
-void SokobanGame::markHudLevelDirty() {
-  markRectDirty(HUD_LEVEL_X - 1, HUD_LEVEL_Y - 1, 100, textHeight(2) + 2);
+void SokobanGame::updateBoardLayout() {
+  int maxTileW = (renderTarget.width() - 8) / boardW;
+  int maxTileH = (renderTarget.height() - HUD_H - 8) / boardH;
+  tileSize = maxTileW;
+  if (maxTileH < tileSize) {
+    tileSize = maxTileH;
+  }
+  if (tileSize > MAX_TILE_SIZE) {
+    tileSize = MAX_TILE_SIZE;
+  }
+  if (tileSize < SPRITE_SIZE) {
+    tileSize = SPRITE_SIZE;
+  }
+
+  boardX0 = (renderTarget.width() - boardPixelWidth()) / 2;
+  if (boardX0 < 4) {
+    boardX0 = 4;
+  }
+
+  int contentTop = HUD_H + 4;
+  int contentH = renderTarget.height() - contentTop - 4;
+  boardY0 = contentTop + (contentH - boardPixelHeight()) / 2;
+  if (boardY0 < contentTop) {
+    boardY0 = contentTop;
+  }
 }
 
-void SokobanGame::markHudMovesDirty() {
-  markRectDirty(HUD_MOVES_X - 1, HUD_MOVES_Y - 1, 100, textHeight(1) + 2);
+void SokobanGame::updateHudLayout() {
+  const int screenW = renderTarget.width();
+  hudTitleX = 8;
+  hudLevelX = screenW - Font5x7::textWidth(hudLevelText, 2) - 8;
+  if (hudLevelX < hudTitleX + Font5x7::textWidth("SOKOBAN", 2) + 8) {
+    hudLevelX = hudTitleX + Font5x7::textWidth("SOKOBAN", 2) + 8;
+  }
+
+  hudMovesX = 8;
+  hudTotalX = (screenW - Font5x7::textWidth(hudTotalText, 1)) / 2;
+  if (hudTotalX < hudMovesX + Font5x7::textWidth(hudMovesText, 1) + 8) {
+    hudTotalX = hudMovesX + Font5x7::textWidth(hudMovesText, 1) + 8;
+  }
+
+  hudStatusX = screenW - Font5x7::textWidth(hudStatusText, 1) - 8;
+  if (hudStatusX < hudTotalX + Font5x7::textWidth(hudTotalText, 1) + 8) {
+    hudStatusX = hudTotalX + Font5x7::textWidth(hudTotalText, 1) + 8;
+  }
 }
 
-void SokobanGame::markHudTotalDirty() {
-  markRectDirty(HUD_TOTAL_X - 1, HUD_TOTAL_Y - 1, 100, textHeight(1) + 2);
+void SokobanGame::updateOverlayLayout() {
+  int textW = Font5x7::textWidth(overlayTitleText, 2);
+  int subW = Font5x7::textWidth(overlaySubText, 1);
+  if (subW > textW) {
+    textW = subW;
+  }
+
+  overlayW = textW + 24;
+  if (overlayW < 160) {
+    overlayW = 160;
+  }
+  if (overlayW > renderTarget.width() - 16) {
+    overlayW = renderTarget.width() - 16;
+  }
+
+  overlayX0 = (renderTarget.width() - overlayW) / 2;
+  overlayY0 = (renderTarget.height() - OVERLAY_H) / 2;
+  overlayTitleX = (renderTarget.width() - Font5x7::textWidth(overlayTitleText, 2)) / 2;
+  overlaySubX = (renderTarget.width() - Font5x7::textWidth(overlaySubText, 1)) / 2;
 }
 
-void SokobanGame::markHudStatusDirty() {
-  markRectDirty(HUD_STATUS_X - 1, HUD_STATUS_Y - 1, 92, textHeight(1) + 2);
+void SokobanGame::markHudDirty() {
+  markRectDirty(0, 0, renderTarget.width(), HUD_H);
 }
 
 void SokobanGame::markOverlayDirty() {
-  int x = (gfx.width() - OVERLAY_W) / 2;
-  int y = (gfx.height() - OVERLAY_H) / 2;
-  markRectDirty(x, y, OVERLAY_W, OVERLAY_H);
+  markRectDirty(overlayX0, overlayY0, overlayW, OVERLAY_H);
 }
 
 void SokobanGame::markCellDirty(int gx, int gy) {
   if (!inBounds(gx, gy)) {
     return;
   }
-  markRectDirty(boardX0 + gx * TILE_SIZE, boardY0 + gy * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+  markRectDirty(boardX0 + gx * tileSize, boardY0 + gy * tileSize, tileSize, tileSize);
 }
 
 void SokobanGame::markBoardFrameDirty() {
   int x = boardX0 - 2;
   int y = boardY0 - 2;
-  int w = boardW * TILE_SIZE + 4;
-  int h = boardH * TILE_SIZE + 4;
+  int w = boardPixelWidth() + 4;
+  int h = boardPixelHeight() + 4;
   markRectDirty(x, y, w, h);
 }
 
@@ -572,11 +630,11 @@ void SokobanGame::markRectDirty(int x, int y, int w, int h) {
 }
 
 void SokobanGame::invalidatePlayingScreen() {
-  dirty.invalidate(gfx);
+  dirty.invalidate(renderTarget);
 }
 
 void SokobanGame::flushDirty() {
-  flusher.flush(gfx, regionBuf, [this](int x0, int y0, int w, int h, uint16_t* buf) {
+  flusher.flush(renderTarget, regionBuf, [this](int x0, int y0, int w, int h, uint16_t* buf) {
     renderRegionToBuffer(x0, y0, w, h, buf);
   });
 }
@@ -672,17 +730,35 @@ void SokobanGame::syncSpritesFromBoard() {
       }
       auto& s = sprites.sprite(slot++);
       s.active = true;
-      s.setPosition(boardX0 + x * TILE_SIZE + 2, boardY0 + y * TILE_SIZE + 2);
+      s.setPosition(boardX0 + x * tileSize + spriteInset(), boardY0 + y * tileSize + spriteInset());
     }
   }
 
   auto& p = sprites.sprite(PLAYER_SPRITE_SLOT);
   p.active = true;
-  p.setPosition(boardX0 + playerX * TILE_SIZE + 2, boardY0 + playerY * TILE_SIZE + 2);
+  p.setPosition(
+    boardX0 + playerX * tileSize + spriteInset(),
+    boardY0 + playerY * tileSize + spriteInset());
+}
+
+int SokobanGame::boardPixelWidth() const {
+  return boardW * tileSize;
+}
+
+int SokobanGame::boardPixelHeight() const {
+  return boardH * tileSize;
+}
+
+int SokobanGame::spriteInset() const {
+  int inset = (tileSize - SPRITE_SIZE) / 2;
+  if (inset < 0) {
+    return 0;
+  }
+  return inset;
 }
 
 uint16_t SokobanGame::pixelAt(int x, int y) const {
-  if (x < 0 || x >= gfx.width() || y < 0 || y >= gfx.height()) {
+  if (x < 0 || x >= renderTarget.width() || y < 0 || y >= renderTarget.height()) {
     return COLOR_BG;
   }
   if (y < HUD_H) {
@@ -705,31 +781,31 @@ uint16_t SokobanGame::hudPixelAt(int x, int y) const {
   int lx = 0;
 
   ly = y - HUD_TITLE_Y;
-  lx = x - HUD_TITLE_X;
+  lx = x - hudTitleX;
   if (Font5x7::textPixel("SOKOBAN", 2, lx, ly)) {
     return COLOR_ACCENT;
   }
 
   ly = y - HUD_LEVEL_Y;
-  lx = x - HUD_LEVEL_X;
+  lx = x - hudLevelX;
   if (Font5x7::textPixel(hudLevelText, 2, lx, ly)) {
     return COLOR_TEXT;
   }
 
   ly = y - HUD_MOVES_Y;
-  lx = x - HUD_MOVES_X;
+  lx = x - hudMovesX;
   if (Font5x7::textPixel(hudMovesText, 1, lx, ly)) {
     return COLOR_TEXT;
   }
 
   ly = y - HUD_TOTAL_Y;
-  lx = x - HUD_TOTAL_X;
+  lx = x - hudTotalX;
   if (Font5x7::textPixel(hudTotalText, 1, lx, ly)) {
     return COLOR_TEXT;
   }
 
   ly = y - HUD_STATUS_Y;
-  lx = x - HUD_STATUS_X;
+  lx = x - hudStatusX;
   if (Font5x7::textPixel(hudStatusText, 1, lx, ly)) {
     return levelSolved ? COLOR_PLAYER_HI : COLOR_TEXT_DIM;
   }
@@ -740,8 +816,8 @@ uint16_t SokobanGame::hudPixelAt(int x, int y) const {
 uint16_t SokobanGame::boardPixelAt(int x, int y) const {
   int frameX = boardX0 - 2;
   int frameY = boardY0 - 2;
-  int frameW = boardW * TILE_SIZE + 4;
-  int frameH = boardH * TILE_SIZE + 4;
+  int frameW = boardPixelWidth() + 4;
+  int frameH = boardPixelHeight() + 4;
   if (x >= frameX && x < frameX + frameW && y >= frameY && y < frameY + frameH) {
     bool onFrame = (x == frameX) || (x == frameX + frameW - 1) ||
                    (y == frameY) || (y == frameY + frameH - 1);
@@ -755,14 +831,14 @@ uint16_t SokobanGame::boardPixelAt(int x, int y) const {
   }
   int rx = x - boardX0;
   int ry = y - boardY0;
-  if (rx >= boardW * TILE_SIZE || ry >= boardH * TILE_SIZE) {
+  if (rx >= boardPixelWidth() || ry >= boardPixelHeight()) {
     return COLOR_BG;
   }
 
-  int gx = rx / TILE_SIZE;
-  int gy = ry / TILE_SIZE;
-  int lx = rx - gx * TILE_SIZE;
-  int ly = ry - gy * TILE_SIZE;
+  int gx = rx / tileSize;
+  int gy = ry / tileSize;
+  int lx = rx - gx * tileSize;
+  int ly = ry - gy * tileSize;
   return cellPixelAt(board[gy][gx], gx, gy, lx, ly);
 }
 
@@ -776,7 +852,7 @@ uint16_t SokobanGame::cellPixelAt(char cell, int gx, int gy, int lx, int ly) con
     if (ly <= 1 || lx <= 1) {
       return COLOR_WALL_HI;
     }
-    if (ly >= TILE_SIZE - 2 || lx >= TILE_SIZE - 2) {
+    if (ly >= tileSize - 2 || lx >= tileSize - 2) {
       return COLOR_WALL_SH;
     }
     return COLOR_WALL;
@@ -788,14 +864,28 @@ uint16_t SokobanGame::cellPixelAt(char cell, int gx, int gy, int lx, int ly) con
   }
 
   if (hasTarget) {
-    bool outer = (lx >= 5 && lx <= TILE_SIZE - 6 && ly >= 5 && ly <= TILE_SIZE - 6);
-    bool inner = (lx >= 7 && lx <= TILE_SIZE - 8 && ly >= 7 && ly <= TILE_SIZE - 8);
-    bool hole = (lx >= 9 && lx <= TILE_SIZE - 10 && ly >= 9 && ly <= TILE_SIZE - 10);
-    if (outer) {
-      if (hole) {
+    int cx = tileSize / 2;
+    int cy = tileSize / 2;
+    int dx = lx - cx;
+    int dy = ly - cy;
+    int dist2 = dx * dx + dy * dy;
+    int outerR = tileSize / 2 - 3;
+    int innerR = tileSize / 2 - 5;
+    int holeR = tileSize / 2 - 7;
+    if (outerR < 3) {
+      outerR = 3;
+    }
+    if (innerR < 2) {
+      innerR = 2;
+    }
+    if (holeR < 1) {
+      holeR = 1;
+    }
+    if (dist2 <= outerR * outerR) {
+      if (dist2 <= holeR * holeR) {
         return floorColor;
       }
-      return inner ? COLOR_TARGET_HI : COLOR_TARGET;
+      return dist2 <= innerR * innerR ? COLOR_TARGET_HI : COLOR_TARGET;
     }
   }
 
@@ -807,23 +897,21 @@ uint16_t SokobanGame::overlayPixelAt(int x, int y) const {
     return 0;
   }
 
-  int ox = (gfx.width() - OVERLAY_W) / 2;
-  int oy = (gfx.height() - OVERLAY_H) / 2;
-  if (x < ox || x >= ox + OVERLAY_W || y < oy || y >= oy + OVERLAY_H) {
+  if (x < overlayX0 || x >= overlayX0 + overlayW || y < overlayY0 || y >= overlayY0 + OVERLAY_H) {
     return 0;
   }
 
-  if (y < oy + 2 || y >= oy + OVERLAY_H - 2) {
+  if (y < overlayY0 + 2 || y >= overlayY0 + OVERLAY_H - 2) {
     return COLOR_ACCENT;
   }
 
-  int ly = y - (oy + OVERLAY_TEXT1_Y_OFF);
+  int ly = y - (overlayY0 + OVERLAY_TEXT1_Y_OFF);
   int lx = x - overlayTitleX;
   if (Font5x7::textPixel(overlayTitleText, 2, lx, ly)) {
     return COLOR_TEXT;
   }
 
-  ly = y - (oy + OVERLAY_TEXT2_Y_OFF);
+  ly = y - (overlayY0 + OVERLAY_TEXT2_Y_OFF);
   lx = x - overlaySubX;
   if (Font5x7::textPixel(overlaySubText, 1, lx, ly)) {
     return COLOR_TEXT_DIM;

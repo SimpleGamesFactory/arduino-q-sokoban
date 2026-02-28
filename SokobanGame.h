@@ -5,9 +5,11 @@
 #include "SGF/Actions.h"
 #include "SGF/Color565.h"
 #include "SGF/DirtyRects.h"
-#include "SGF/FastILI9341.h"
 #include "SGF/Font5x7.h"
 #include "SGF/Game.h"
+#include "SGF/HardwareProfile.h"
+#include "SGF/IRenderTarget.h"
+#include "SGF/IScreen.h"
 #include "SGF/InputPin.h"
 #include "SGF/Scene.h"
 #include "SGF/Sprites.h"
@@ -18,12 +20,10 @@
 
 class SokobanGame : public Game {
 public:
-  SokobanGame(FastILI9341& gfxRef,
-              uint8_t leftPin,
-              uint8_t rightPin,
-              uint8_t upPin,
-              uint8_t downPin,
-              uint8_t firePin);
+  SokobanGame(
+    IRenderTarget& renderTarget,
+    IScreen& screen,
+    const SGFHardware::HardwareProfile& hardwareProfile);
 
   void setup();
 
@@ -36,13 +36,7 @@ private:
 
   static constexpr uint32_t FRAME_DEFAULT_STEP_US = 10000u;
   static constexpr uint32_t FRAME_MAX_STEP_US = 30000u;
-  static constexpr uint32_t DEFAULT_SPI_HZ = 24000000u;
-  static constexpr FastILI9341::ScreenRotation DEFAULT_ROTATION =
-      FastILI9341::ScreenRotation::Landscape;
-
-  static constexpr int SCREEN_W = 320;
-  static constexpr int SCREEN_H = 240;
-  static constexpr int TILE_SIZE = 20;
+  static constexpr int MAX_TILE_SIZE = 20;
   static constexpr int SPRITE_SIZE = 16;
   static constexpr int BOARD_MAX_W = 14;
   static constexpr int BOARD_MAX_H = 10;
@@ -51,6 +45,7 @@ private:
   static constexpr int MAX_TILE_H = 64;
   static constexpr uint8_t LEVEL_COUNT = 10;
   static constexpr float LEVEL_SOLVED_DELAY_S = 0.75f;
+  static constexpr int OVERLAY_H = 52;
 
   static constexpr uint16_t COLOR_BG = Color565::rgb(8, 12, 18);
   static constexpr uint16_t COLOR_PANEL = Color565::rgb(14, 22, 32);
@@ -64,8 +59,8 @@ private:
   static constexpr uint16_t COLOR_FLOOR_A = Color565::rgb(18, 26, 34);
   static constexpr uint16_t COLOR_FLOOR_B = Color565::rgb(14, 22, 30);
   static constexpr uint16_t COLOR_GRID = Color565::rgb(24, 36, 46);
-  static constexpr uint16_t COLOR_TARGET = Color565::rgb(232, 96, 96);
-  static constexpr uint16_t COLOR_TARGET_HI = Color565::rgb(255, 188, 160);
+  static constexpr uint16_t COLOR_TARGET = Color565::rgb(255, 40, 40);
+  static constexpr uint16_t COLOR_TARGET_HI = Color565::rgb(255, 160, 160);
   static constexpr uint16_t COLOR_BOX = Color565::rgb(188, 136, 72);
   static constexpr uint16_t COLOR_BOX_HI = Color565::rgb(236, 188, 108);
   static constexpr uint16_t COLOR_BOX_SH = Color565::rgb(120, 84, 44);
@@ -74,10 +69,12 @@ private:
   static constexpr uint16_t COLOR_PLAYER_SH = Color565::rgb(44, 122, 78);
   static constexpr uint16_t COLOR_OVERLAY = Color565::rgb(20, 28, 40);
   static constexpr uint16_t COLOR_GO_BG = Color565::rgb(14, 8, 10);
-  static constexpr uint16_t COLOR_GO_LINE = Color565::rgb(110, 34, 34);
-  static constexpr uint16_t COLOR_GO_TITLE = Color565::rgb(255, 112, 112);
+  static constexpr uint16_t COLOR_GO_LINE = Color565::rgb(180, 24, 24);
+  static constexpr uint16_t COLOR_GO_TITLE = Color565::rgb(255, 48, 48);
 
-  FastILI9341& gfx;
+  IRenderTarget& renderTarget;
+  IScreen& screen;
+  SGFHardware::HardwareProfile hardwareProfile;
   DirtyRects dirty;
   TileFlusher flusher;
   SpriteLayer sprites;
@@ -110,6 +107,7 @@ private:
   char board[BOARD_MAX_H][BOARD_MAX_W]{};
   int boardW = 0;
   int boardH = 0;
+  int tileSize = MAX_TILE_SIZE;
   int boardX0 = 0;
   int boardY0 = 0;
   int playerX = 0;
@@ -128,8 +126,16 @@ private:
   char hudMovesText[16]{};
   char hudTotalText[16]{};
   char hudStatusText[16]{};
+  int hudTitleX = 8;
+  int hudLevelX = 0;
+  int hudMovesX = 8;
+  int hudTotalX = 0;
+  int hudStatusX = 0;
   char overlayTitleText[24]{};
   char overlaySubText[24]{};
+  int overlayX0 = 0;
+  int overlayY0 = 0;
+  int overlayW = 0;
   int overlayTitleX = 0;
   int overlaySubX = 0;
 
@@ -162,10 +168,10 @@ private:
   void renderGameOverScreen();
   void refreshHudTexts();
   void refreshOverlayTexts();
-  void markHudLevelDirty();
-  void markHudMovesDirty();
-  void markHudTotalDirty();
-  void markHudStatusDirty();
+  void updateBoardLayout();
+  void updateHudLayout();
+  void updateOverlayLayout();
+  void markHudDirty();
   void markOverlayDirty();
   void markCellDirty(int gx, int gy);
   void markBoardFrameDirty();
@@ -175,6 +181,9 @@ private:
   void buildSpritePixels();
   void initSpriteSlots();
   void syncSpritesFromBoard();
+  int boardPixelWidth() const;
+  int boardPixelHeight() const;
+  int spriteInset() const;
   uint16_t pixelAt(int x, int y) const;
   uint16_t hudPixelAt(int x, int y) const;
   uint16_t boardPixelAt(int x, int y) const;

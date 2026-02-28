@@ -1,21 +1,18 @@
-#include "SGF.h"
+// Define SGF_HW_PRESET here or pass it via -DSGF_HW_PRESET=...
+// Examples:
+//#define SGF_HW_PRESET SGF_HW_PRESET_UNOQ_ILI9341_320X240
+#define SGF_HW_PRESET SGF_HW_PRESET_ESP32_ST7789_240X240
+
+#include "vendor/sgf-hardware-presets/SGFHardwarePresets.h"
 #include "SokobanGame.h"
 
-#define TFT_CS 10
-#define TFT_DC 9
-#define TFT_RST 8
-#define TFT_LED D6
-
-#define PIN_LEFT 2
-#define PIN_RIGHT 3
-#define PIN_FIRE D4
-#define PIN_UP D5
-#define PIN_DOWN D7
-
-FastILI9341 gfx(TFT_CS, TFT_DC, TFT_RST, TFT_LED);
-SokobanGame sokoban(gfx, PIN_LEFT, PIN_RIGHT, PIN_UP, PIN_DOWN, PIN_FIRE);
+auto hardware = SGFHardwareProfile::makeRuntime();
+SokobanGame sokoban(hardware.renderTarget(), hardware.screen(), hardware.profile);
 
 void setup() {
+  hardware.display.begin(hardware.profile.display.spiHz);
+  hardware.display.setRotation(hardware.profile.display.rotation);
+  hardware.display.setBacklight(hardware.profile.display.backlightLevel);
   sokoban.setup();
 }
 
