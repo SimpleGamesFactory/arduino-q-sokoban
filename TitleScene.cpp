@@ -9,12 +9,17 @@ void TitleScene::onEnter() {
   game.renderTitleScreen();
 }
 
+void TitleScene::onInput(const InputEvent& event) {
+  if (!event.isActionJustPressed(game.fireAction)) {
+    return;
+  }
+
+  game.startNewGame();
+  game.switchScene(game.playingScene);
+}
+
 void TitleScene::onPhysics(float delta) {
   (void)delta;
-  if (game.fireAction.isJustPressed()) {
-    game.startNewGame();
-    game.switchScene(game.playingScene);
-  }
 }
 
 void TitleScene::onProcess(float delta) {

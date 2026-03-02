@@ -8,33 +8,37 @@ void PlayingScene::onEnter() {
   // `loadLevel()` marks dirty regions before entering the scene.
 }
 
-void PlayingScene::onPhysics(float delta) {
+void PlayingScene::onInput(const InputEvent& event) {
   if (game.levelSolved) {
-    game.levelSolvedTimer += delta;
-    if (game.fireAction.isJustPressed() ||
-        game.levelSolvedTimer >= SokobanGame::LEVEL_SOLVED_DELAY_S) {
+    if (event.isActionJustPressed(game.fireAction)) {
       game.advanceAfterLevelSolved();
     }
     return;
   }
 
-  if (game.fireAction.isJustPressed()) {
+  if (event.isActionJustPressed(game.fireAction)) {
     game.loadLevel(game.currentLevel);
     return;
   }
 
-  bool moved = false;
-  if (game.leftAction.isJustPressed()) {
-    moved = game.tryMove(-1, 0);
-  } else if (game.rightAction.isJustPressed()) {
-    moved = game.tryMove(1, 0);
-  } else if (game.upAction.isJustPressed()) {
-    moved = game.tryMove(0, -1);
-  } else if (game.downAction.isJustPressed()) {
-    moved = game.tryMove(0, 1);
+  if (event.isActionJustPressed(game.leftAction)) {
+    game.tryMove(-1, 0);
+  } else if (event.isActionJustPressed(game.rightAction)) {
+    game.tryMove(1, 0);
+  } else if (event.isActionJustPressed(game.upAction)) {
+    game.tryMove(0, -1);
+  } else if (event.isActionJustPressed(game.downAction)) {
+    game.tryMove(0, 1);
   }
+}
 
-  (void)moved;
+void PlayingScene::onPhysics(float delta) {
+  if (game.levelSolved) {
+    game.levelSolvedTimer += delta;
+    if (game.levelSolvedTimer >= SokobanGame::LEVEL_SOLVED_DELAY_S) {
+      game.advanceAfterLevelSolved();
+    }
+  }
 }
 
 void PlayingScene::onProcess(float delta) {

@@ -9,6 +9,7 @@ public:
   explicit TitleScene(SokobanGame& gameRef);
 
   void onEnter() override;
+  void onInput(const InputEvent& event) override;
   void onPhysics(float delta) override;
   void onProcess(float delta) override;
 
