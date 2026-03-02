@@ -88,7 +88,6 @@ private:
   ActionState fireAction;
   ActionBinding actionBindings[5];
 
-  SceneSwitcher sceneSwitcher;
   TitleScene titleScene;
   PlayingScene playingScene;
   GameOverScene gameOverScene;
