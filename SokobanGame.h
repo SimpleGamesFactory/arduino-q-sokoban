@@ -1,21 +1,10 @@
 #pragma once
 
 #include <stdint.h>
+#include <SGF.h>
 
-#include "SGF/Actions.h"
-#include "SGF/Color565.h"
-#include "SGF/DirtyRects.h"
-#include "SGF/Font5x7.h"
-#include "SGF/Game.h"
-#include "SGF/HardwareProfile.h"
-#include "SGF/IRenderTarget.h"
-#include "SGF/IScreen.h"
-#include "SGF/InputPin.h"
-#include "SGF/Scene.h"
-#include "SGF/Sprites.h"
-#include "SGF/TileFlusher.h"
-#include "GameOverScene.h"
 #include "PlayingScene.h"
+#include "GameOverScene.h"
 #include "TitleScene.h"
 
 class SokobanGame : public Game {
@@ -92,12 +81,12 @@ private:
   DebouncedInputPin downPinInput;
   DebouncedInputPin firePinInput;
 
-  DigitalAction leftAction;
-  DigitalAction rightAction;
-  DigitalAction upAction;
-  DigitalAction downAction;
-  DigitalAction fireAction;
-  PressReleaseAction fireConfirm;
+  ActionState leftAction;
+  ActionState rightAction;
+  ActionState upAction;
+  ActionState downAction;
+  ActionState fireAction;
+  ActionBinding actionBindings[5];
 
   SceneSwitcher sceneSwitcher;
   TitleScene titleScene;

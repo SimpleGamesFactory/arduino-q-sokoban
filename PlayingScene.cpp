@@ -11,26 +11,26 @@ void PlayingScene::onEnter() {
 void PlayingScene::onPhysics(float delta) {
   if (game.levelSolved) {
     game.levelSolvedTimer += delta;
-    if (game.fireAction.justPressed() ||
+    if (game.fireAction.isJustPressed() ||
         game.levelSolvedTimer >= SokobanGame::LEVEL_SOLVED_DELAY_S) {
       game.advanceAfterLevelSolved();
     }
     return;
   }
 
-  if (game.fireAction.justPressed()) {
+  if (game.fireAction.isJustPressed()) {
     game.loadLevel(game.currentLevel);
     return;
   }
 
   bool moved = false;
-  if (game.leftAction.justPressed()) {
+  if (game.leftAction.isJustPressed()) {
     moved = game.tryMove(-1, 0);
-  } else if (game.rightAction.justPressed()) {
+  } else if (game.rightAction.isJustPressed()) {
     moved = game.tryMove(1, 0);
-  } else if (game.upAction.justPressed()) {
+  } else if (game.upAction.isJustPressed()) {
     moved = game.tryMove(0, -1);
-  } else if (game.downAction.justPressed()) {
+  } else if (game.downAction.isJustPressed()) {
     moved = game.tryMove(0, 1);
   }
 

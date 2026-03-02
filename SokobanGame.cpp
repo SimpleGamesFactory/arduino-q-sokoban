@@ -151,6 +151,13 @@ SokobanGame::SokobanGame(
     dirty(),
     flusher(dirty, MAX_TILE_W, MAX_TILE_H),
     sprites(),
+    actionBindings{
+      {leftPinInput, leftAction},
+      {rightPinInput, rightAction},
+      {upPinInput, upAction},
+      {downPinInput, downAction},
+      {firePinInput, fireAction},
+    },
     sceneSwitcher(),
     titleScene(*this),
     playingScene(*this),
@@ -170,46 +177,25 @@ void SokobanGame::setup() {
 }
 
 void SokobanGame::onSetup() {
-  leftPinInput.attach(pinLeft, true);
-  rightPinInput.attach(pinRight, true);
-  upPinInput.attach(pinUp, true);
-  downPinInput.attach(pinDown, true);
-  firePinInput.attach(pinFire, true);
-  leftPinInput.begin(INPUT_PULLUP);
-  rightPinInput.begin(INPUT_PULLUP);
-  upPinInput.begin(INPUT_PULLUP);
-  downPinInput.begin(INPUT_PULLUP);
-  firePinInput.begin(INPUT_PULLUP);
+  leftPinInput.attach(pinLeft);
+  rightPinInput.attach(pinRight);
+  upPinInput.attach(pinUp);
+  downPinInput.attach(pinDown);
+  firePinInput.attach(pinFire);
 
-  leftPinInput.resetFromPin();
-  rightPinInput.resetFromPin();
-  upPinInput.resetFromPin();
-  downPinInput.resetFromPin();
-  firePinInput.resetFromPin();
-
-  leftAction.reset(leftPinInput.pressed());
-  rightAction.reset(rightPinInput.pressed());
-  upAction.reset(upPinInput.pressed());
-  downAction.reset(downPinInput.pressed());
-  fireAction.reset(firePinInput.pressed());
-  fireConfirm.reset();
+  configureActions(actionBindings, sizeof(actionBindings) / sizeof(actionBindings[0]));
 
   dirty.clear();
-  sceneSwitcher.setInitial(titleScene);
-  resetClock();
+  attachSceneSwitcher(sceneSwitcher);
+  setInitialScene(titleScene);
 }
 
 void SokobanGame::onPhysics(float delta) {
-  leftAction.update(leftPinInput.update());
-  rightAction.update(rightPinInput.update());
-  upAction.update(upPinInput.update());
-  downAction.update(downPinInput.update());
-  fireAction.update(firePinInput.update());
-  sceneSwitcher.onPhysics(delta);
+  (void)delta;
 }
 
 void SokobanGame::onProcess(float delta) {
-  sceneSwitcher.onProcess(delta);
+  (void)delta;
 }
 
 void SokobanGame::startNewGame() {
@@ -279,8 +265,7 @@ void SokobanGame::advanceAfterLevelSolved() {
   }
 
   finalMoves = totalMoves;
-  sceneSwitcher.switchTo(gameOverScene);
-  resetClock();
+  switchScene(gameOverScene);
 }
 
 bool SokobanGame::tryMove(int dx, int dy) {

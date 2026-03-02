@@ -5,16 +5,15 @@
 TitleScene::TitleScene(SokobanGame& gameRef) : game(gameRef) {}
 
 void TitleScene::onEnter() {
-  game.fireConfirm.reset();
+  game.resetActions();
   game.renderTitleScreen();
 }
 
 void TitleScene::onPhysics(float delta) {
   (void)delta;
-  if (game.fireConfirm.update(game.fireAction)) {
+  if (game.fireAction.isJustPressed()) {
     game.startNewGame();
-    game.sceneSwitcher.switchTo(game.playingScene);
-    game.resetClock();
+    game.switchScene(game.playingScene);
   }
 }
 

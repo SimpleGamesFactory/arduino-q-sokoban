@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SGF/Scene.h"
+#include "SGF.h"
 
 class SokobanGame;
 

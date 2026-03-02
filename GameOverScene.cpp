@@ -5,15 +5,14 @@
 GameOverScene::GameOverScene(SokobanGame& gameRef) : game(gameRef) {}
 
 void GameOverScene::onEnter() {
-  game.fireConfirm.reset();
+  game.resetActions();
   game.renderGameOverScreen();
 }
 
 void GameOverScene::onPhysics(float delta) {
   (void)delta;
-  if (game.fireConfirm.update(game.fireAction)) {
-    game.sceneSwitcher.switchTo(game.titleScene);
-    game.resetClock();
+  if (game.fireAction.isJustPressed()) {
+    game.switchScene(game.titleScene);
   }
 }
 
