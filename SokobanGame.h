@@ -169,6 +169,7 @@ private:
   void buildSpritePixels();
   void initSpriteSlots();
   void syncSpritesFromBoard();
+  int textWidth(const char* text, int scale) const;
   int boardPixelWidth() const;
   int boardPixelHeight() const;
   int spriteInset() const;
@@ -177,5 +178,7 @@ private:
   uint16_t boardPixelAt(int x, int y) const;
   uint16_t cellPixelAt(char cell, int gx, int gy, int lx, int ly) const;
   uint16_t overlayPixelAt(int x, int y) const;
+  void renderHudTextToBuffer(BufferFillRect& fillRect) const;
+  void renderOverlayTextToBuffer(BufferFillRect& fillRect) const;
   void renderRegionToBuffer(int x0, int y0, int w, int h, uint16_t* buf);
 };

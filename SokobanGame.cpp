@@ -114,7 +114,7 @@ constexpr int PLAYER_SPRITE_SLOT = SpriteLayer::kMaxSprites - 1;
 
 int fitCenteredScale(int screenWidth, const char* text, int maxScale, int margin) {
   for (int scale = maxScale; scale >= 1; --scale) {
-    if (Font5x7::textWidth(text, scale) <= screenWidth - margin * 2) {
+    if (FontRenderer::textWidth(FONT_5X7, text, scale) <= screenWidth - margin * 2) {
       return scale;
     }
   }
@@ -406,12 +406,12 @@ void SokobanGame::renderTitleScreen() {
   screen.fillRect565(14, screenSize.y - 26, screenSize.x - 28, 2, COLOR_PANEL_LINE);
   screen.fillRect565(14, screenSize.y - 18, screenSize.x - 28, 4, COLOR_ACCENT);
 
-  Font5x7::drawCenteredText(screen, 46, "UNOQ SOKOBAN", titleScale, COLOR_TEXT);
-  Font5x7::drawCenteredText(screen, 90, "10 PLANSZ", 2, COLOR_ACCENT);
-  Font5x7::drawCenteredText(screen, 118, "L/R/U/D - RUCH", 2, COLOR_TEXT);
-  Font5x7::drawCenteredText(screen, 144, "FIRE - START", 2, COLOR_TEXT);
-  Font5x7::drawCenteredText(screen, 170, "FIRE W GRZE - RESTART", 1, COLOR_TEXT_DIM);
-  Font5x7::drawCenteredText(screen, 194, "PRZENIES SKRZYNKI NA CELE", 1, COLOR_TEXT_DIM);
+  FontRenderer::drawTextCentered(FONT_5X7, screen, screenSize.x / 2, 46, "UNOQ SOKOBAN", titleScale, COLOR_TEXT);
+  FontRenderer::drawTextCentered(FONT_5X7, screen, screenSize.x / 2, 90, "10 PLANSZ", 2, COLOR_ACCENT);
+  FontRenderer::drawTextCentered(FONT_5X7, screen, screenSize.x / 2, 118, "L/R/U/D - RUCH", 2, COLOR_TEXT);
+  FontRenderer::drawTextCentered(FONT_5X7, screen, screenSize.x / 2, 144, "FIRE - START", 2, COLOR_TEXT);
+  FontRenderer::drawTextCentered(FONT_5X7, screen, screenSize.x / 2, 170, "FIRE W GRZE - RESTART", 1, COLOR_TEXT_DIM);
+  FontRenderer::drawTextCentered(FONT_5X7, screen, screenSize.x / 2, 194, "PRZENIES SKRZYNKI NA CELE", 1, COLOR_TEXT_DIM);
 }
 
 void SokobanGame::renderGameOverScreen() {
@@ -427,12 +427,12 @@ void SokobanGame::renderGameOverScreen() {
   screen.fillRect565(18, 18, screenSize.x - 36, 3, COLOR_GO_LINE);
   screen.fillRect565(18, screenSize.y - 21, screenSize.x - 36, 3, COLOR_GO_LINE);
 
-  Font5x7::drawCenteredText(screen, 48, "GAME OVER", titleScale, COLOR_GO_TITLE);
-  Font5x7::drawCenteredText(screen, 96, "UKONCZONE PLANSZE", 1, COLOR_TEXT_DIM);
-  Font5x7::drawCenteredText(screen, 112, levelsBuf, 3, COLOR_TEXT);
-  Font5x7::drawCenteredText(screen, 152, "RUCHY", 1, COLOR_TEXT_DIM);
-  Font5x7::drawCenteredText(screen, 168, movesBuf, 3, COLOR_ACCENT);
-  Font5x7::drawCenteredText(screen, 206, "FIRE - MENU", 2, COLOR_TEXT);
+  FontRenderer::drawTextCentered(FONT_5X7, screen, screenSize.x / 2, 48, "GAME OVER", titleScale, COLOR_GO_TITLE);
+  FontRenderer::drawTextCentered(FONT_5X7, screen, screenSize.x / 2, 96, "UKONCZONE PLANSZE", 1, COLOR_TEXT_DIM);
+  FontRenderer::drawTextCentered(FONT_5X7, screen, screenSize.x / 2, 112, levelsBuf, 3, COLOR_TEXT);
+  FontRenderer::drawTextCentered(FONT_5X7, screen, screenSize.x / 2, 152, "RUCHY", 1, COLOR_TEXT_DIM);
+  FontRenderer::drawTextCentered(FONT_5X7, screen, screenSize.x / 2, 168, movesBuf, 3, COLOR_ACCENT);
+  FontRenderer::drawTextCentered(FONT_5X7, screen, screenSize.x / 2, 206, "FIRE - MENU", 2, COLOR_TEXT);
 }
 
 void SokobanGame::refreshHudTexts() {
@@ -526,27 +526,27 @@ void SokobanGame::updateBoardLayout() {
 void SokobanGame::updateHudLayout() {
   const int screenW = renderTarget.size().x;
   hudTitleX = 8;
-  hudLevelX = screenW - Font5x7::textWidth(hudLevelText, 2) - 8;
-  if (hudLevelX < hudTitleX + Font5x7::textWidth("SOKOBAN", 2) + 8) {
-    hudLevelX = hudTitleX + Font5x7::textWidth("SOKOBAN", 2) + 8;
+  hudLevelX = screenW - textWidth(hudLevelText, 2) - 8;
+  if (hudLevelX < hudTitleX + textWidth("SOKOBAN", 2) + 8) {
+    hudLevelX = hudTitleX + textWidth("SOKOBAN", 2) + 8;
   }
 
   hudMovesX = 8;
-  hudTotalX = (screenW - Font5x7::textWidth(hudTotalText, 1)) / 2;
-  if (hudTotalX < hudMovesX + Font5x7::textWidth(hudMovesText, 1) + 8) {
-    hudTotalX = hudMovesX + Font5x7::textWidth(hudMovesText, 1) + 8;
+  hudTotalX = (screenW - textWidth(hudTotalText, 1)) / 2;
+  if (hudTotalX < hudMovesX + textWidth(hudMovesText, 1) + 8) {
+    hudTotalX = hudMovesX + textWidth(hudMovesText, 1) + 8;
   }
 
-  hudStatusX = screenW - Font5x7::textWidth(hudStatusText, 1) - 8;
-  if (hudStatusX < hudTotalX + Font5x7::textWidth(hudTotalText, 1) + 8) {
-    hudStatusX = hudTotalX + Font5x7::textWidth(hudTotalText, 1) + 8;
+  hudStatusX = screenW - textWidth(hudStatusText, 1) - 8;
+  if (hudStatusX < hudTotalX + textWidth(hudTotalText, 1) + 8) {
+    hudStatusX = hudTotalX + textWidth(hudTotalText, 1) + 8;
   }
 }
 
 void SokobanGame::updateOverlayLayout() {
   const Vector2i screenSize = renderTarget.size();
-  int textW = Font5x7::textWidth(overlayTitleText, 2);
-  int subW = Font5x7::textWidth(overlaySubText, 1);
+  int textW = textWidth(overlayTitleText, 2);
+  int subW = textWidth(overlaySubText, 1);
   if (subW > textW) {
     textW = subW;
   }
@@ -561,8 +561,8 @@ void SokobanGame::updateOverlayLayout() {
 
   overlayX0 = (screenSize.x - overlayW) / 2;
   overlayY0 = (screenSize.y - OVERLAY_H) / 2;
-  overlayTitleX = (screenSize.x - Font5x7::textWidth(overlayTitleText, 2)) / 2;
-  overlaySubX = (screenSize.x - Font5x7::textWidth(overlaySubText, 1)) / 2;
+  overlayTitleX = (screenSize.x - textWidth(overlayTitleText, 2)) / 2;
+  overlaySubX = (screenSize.x - textWidth(overlaySubText, 1)) / 2;
 }
 
 void SokobanGame::markHudDirty() {
@@ -707,6 +707,10 @@ void SokobanGame::syncSpritesFromBoard() {
     boardY0 + playerY * tileSize + spriteInset());
 }
 
+int SokobanGame::textWidth(const char* text, int scale) const {
+  return FontRenderer::textWidth(FONT_5X7, text, scale);
+}
+
 int SokobanGame::boardPixelWidth() const {
   return boardW * tileSize;
 }
@@ -743,41 +747,7 @@ uint16_t SokobanGame::hudPixelAt(int x, int y) const {
     return COLOR_PANEL_LINE;
   }
 
-  uint16_t color = COLOR_PANEL;
-  int ly = 0;
-  int lx = 0;
-
-  ly = y - HUD_TITLE_Y;
-  lx = x - hudTitleX;
-  if (Font5x7::textPixel("SOKOBAN", 2, lx, ly)) {
-    return COLOR_ACCENT;
-  }
-
-  ly = y - HUD_LEVEL_Y;
-  lx = x - hudLevelX;
-  if (Font5x7::textPixel(hudLevelText, 2, lx, ly)) {
-    return COLOR_TEXT;
-  }
-
-  ly = y - HUD_MOVES_Y;
-  lx = x - hudMovesX;
-  if (Font5x7::textPixel(hudMovesText, 1, lx, ly)) {
-    return COLOR_TEXT;
-  }
-
-  ly = y - HUD_TOTAL_Y;
-  lx = x - hudTotalX;
-  if (Font5x7::textPixel(hudTotalText, 1, lx, ly)) {
-    return COLOR_TEXT;
-  }
-
-  ly = y - HUD_STATUS_Y;
-  lx = x - hudStatusX;
-  if (Font5x7::textPixel(hudStatusText, 1, lx, ly)) {
-    return levelSolved ? COLOR_PLAYER_HI : COLOR_TEXT_DIM;
-  }
-
-  return color;
+  return COLOR_PANEL;
 }
 
 uint16_t SokobanGame::boardPixelAt(int x, int y) const {
@@ -872,19 +842,33 @@ uint16_t SokobanGame::overlayPixelAt(int x, int y) const {
     return COLOR_ACCENT;
   }
 
-  int ly = y - (overlayY0 + OVERLAY_TEXT1_Y_OFF);
-  int lx = x - overlayTitleX;
-  if (Font5x7::textPixel(overlayTitleText, 2, lx, ly)) {
-    return COLOR_TEXT;
-  }
-
-  ly = y - (overlayY0 + OVERLAY_TEXT2_Y_OFF);
-  lx = x - overlaySubX;
-  if (Font5x7::textPixel(overlaySubText, 1, lx, ly)) {
-    return COLOR_TEXT_DIM;
-  }
-
   return COLOR_OVERLAY;
+}
+
+void SokobanGame::renderHudTextToBuffer(BufferFillRect& fillRect) const {
+  FontRenderer::drawText(FONT_5X7, fillRect, hudTitleX, HUD_TITLE_Y, "SOKOBAN", 2, COLOR_ACCENT);
+  FontRenderer::drawText(FONT_5X7, fillRect, hudLevelX, HUD_LEVEL_Y, hudLevelText, 2, COLOR_TEXT);
+  FontRenderer::drawText(FONT_5X7, fillRect, hudMovesX, HUD_MOVES_Y, hudMovesText, 1, COLOR_TEXT);
+  FontRenderer::drawText(FONT_5X7, fillRect, hudTotalX, HUD_TOTAL_Y, hudTotalText, 1, COLOR_TEXT);
+  FontRenderer::drawText(
+    FONT_5X7,
+    fillRect,
+    hudStatusX,
+    HUD_STATUS_Y,
+    hudStatusText,
+    1,
+    levelSolved ? COLOR_PLAYER_HI : COLOR_TEXT_DIM);
+}
+
+void SokobanGame::renderOverlayTextToBuffer(BufferFillRect& fillRect) const {
+  if (!levelSolved) {
+    return;
+  }
+
+  FontRenderer::drawText(FONT_5X7, fillRect, overlayTitleX, overlayY0 + OVERLAY_TEXT1_Y_OFF,
+                         overlayTitleText, 2, COLOR_TEXT);
+  FontRenderer::drawText(FONT_5X7, fillRect, overlaySubX, overlayY0 + OVERLAY_TEXT2_Y_OFF,
+                         overlaySubText, 1, COLOR_TEXT_DIM);
 }
 
 void SokobanGame::renderRegionToBuffer(int x0, int y0, int w, int h, uint16_t* buf) {
@@ -895,6 +879,9 @@ void SokobanGame::renderRegionToBuffer(int x0, int y0, int w, int h, uint16_t* b
       buf[yy * w + xx] = pixelAt(x, y);
     }
   }
+
+  BufferFillRect fillRect(x0, y0, w, h, buf);
+  renderHudTextToBuffer(fillRect);
 
   sprites.renderRegion(x0, y0, w, h, buf);
 
@@ -909,5 +896,6 @@ void SokobanGame::renderRegionToBuffer(int x0, int y0, int w, int h, uint16_t* b
         }
       }
     }
+    renderOverlayTextToBuffer(fillRect);
   }
 }
