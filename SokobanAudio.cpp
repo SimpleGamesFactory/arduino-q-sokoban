@@ -110,6 +110,123 @@ constexpr SGFAudio::Instrument kOrgan2Instrument{
   54u
 };
 
+constexpr SGFAudio::Adsr kPlayerMoveEnv{0u, 18u, 0u, 10u};
+constexpr SGFAudio::Instrument kPlayerMoveInstrument{
+  SGFAudio::Waveform::Noise,
+  kPlayerMoveEnv,
+  {},
+  nullptr,
+  0u,
+  AUDIO_FILTER_LP | AUDIO_FILTER_HP,
+  1600.0f,
+  90.0f,
+  168u
+};
+constexpr SGFAudio::SfxStep kPlayerMoveSteps[] = {
+  {14u, 0, 0, 138u, true, true},
+  {20u, -1, 0, 118u, true, false},
+  {12u, -3, 0, 92u, true, false},
+};
+constexpr SGFAudio::Sfx kPlayerMoveSfx{
+  &kPlayerMoveInstrument,
+  kPlayerMoveSteps,
+  sizeof(kPlayerMoveSteps) / sizeof(kPlayerMoveSteps[0])
+};
+
+constexpr SGFAudio::Adsr kBoxMoveEnv{0u, 26u, 132u, 28u};
+constexpr SGFAudio::Instrument kBoxMoveInstrument{
+  SGFAudio::Waveform::Saw,
+  kBoxMoveEnv,
+  {},
+  nullptr,
+  0u,
+  AUDIO_FILTER_LP,
+  860.0f,
+  0.0f,
+  132u
+};
+constexpr SGFAudio::SfxStep kBoxMoveSteps[] = {
+  {22u, 0, 0, 220u, true, true},
+  {26u, -3, 0, 200u, true, false},
+  {34u, -7, 0, 168u, true, false},
+};
+constexpr SGFAudio::Sfx kBoxMoveSfx{
+  &kBoxMoveInstrument,
+  kBoxMoveSteps,
+  sizeof(kBoxMoveSteps) / sizeof(kBoxMoveSteps[0])
+};
+
+constexpr SGFAudio::Adsr kBoxPlacedEnv{0u, 16u, 170u, 38u};
+constexpr SGFAudio::Instrument kBoxPlacedInstrument{
+  SGFAudio::Waveform::Square,
+  kBoxPlacedEnv,
+  {},
+  nullptr,
+  0u,
+  AUDIO_FILTER_LP,
+  2400.0f,
+  0.0f,
+  156u
+};
+constexpr SGFAudio::SfxStep kBoxPlacedSteps[] = {
+  {24u, 0, 0, 220u, true, true},
+  {30u, 4, 0, 255u, true, false},
+  {34u, 7, 0, 190u, true, false},
+};
+constexpr SGFAudio::Sfx kBoxPlacedSfx{
+  &kBoxPlacedInstrument,
+  kBoxPlacedSteps,
+  sizeof(kBoxPlacedSteps) / sizeof(kBoxPlacedSteps[0])
+};
+
+constexpr SGFAudio::Adsr kLevelResetEnv{0u, 18u, 150u, 52u};
+constexpr SGFAudio::Instrument kLevelResetInstrument{
+  SGFAudio::Waveform::Saw,
+  kLevelResetEnv,
+  {},
+  nullptr,
+  0u,
+  AUDIO_FILTER_LP,
+  1800.0f,
+  0.0f,
+  160u
+};
+constexpr SGFAudio::SfxStep kLevelResetSteps[] = {
+  {28u, 5, 0, 220u, true, true},
+  {36u, 0, 0, 205u, true, false},
+  {48u, -5, 0, 180u, true, false},
+  {60u, -10, 0, 150u, true, false},
+};
+constexpr SGFAudio::Sfx kLevelResetSfx{
+  &kLevelResetInstrument,
+  kLevelResetSteps,
+  sizeof(kLevelResetSteps) / sizeof(kLevelResetSteps[0])
+};
+
+constexpr SGFAudio::Adsr kLevelFinishedEnv{0u, 24u, 196u, 70u};
+constexpr SGFAudio::Instrument kLevelFinishedInstrument{
+  SGFAudio::Waveform::Triangle,
+  kLevelFinishedEnv,
+  {},
+  nullptr,
+  0u,
+  AUDIO_FILTER_LP,
+  2600.0f,
+  0.0f,
+  176u
+};
+constexpr SGFAudio::SfxStep kLevelFinishedSteps[] = {
+  {42u, 0, 0, 220u, true, true},
+  {42u, 4, 0, 240u, true, false},
+  {56u, 7, 0, 255u, true, false},
+  {72u, 12, 0, 220u, true, false},
+};
+constexpr SGFAudio::Sfx kLevelFinishedSfx{
+  &kLevelFinishedInstrument,
+  kLevelFinishedSteps,
+  sizeof(kLevelFinishedSteps) / sizeof(kLevelFinishedSteps[0])
+};
+
 constexpr SGFAudio::PatternStep kBassPattern1Steps[] = {
   {0.0f, 1u, 0u},
   {0.0f, 1u, 0u},
@@ -288,7 +405,7 @@ const SGFAudio::SongClip kKickClips[] = {
   {&kKickPattern2, 4u},
 };
 const SGFAudio::SongClip kSnareClips[] = {
-  {&kSnarePattern1, 4u},
+  {&kSnarePattern2, 4u},
   {&kSnarePattern2, 4u},
 };
 const SGFAudio::SongClip kOrgan1Clips[] = {
@@ -313,9 +430,36 @@ const SGFAudio::SongLane kTitleSongLanes[] = {
    sizeof(kOrgan2Clips) / sizeof(kOrgan2Clips[0])},
 };
 
+const SGFAudio::SongClip kGameplayKickClips[] = {
+  {&kKickPattern1, 8u},
+};
+const SGFAudio::SongClip kGameplaySnareClips[] = {
+  {&kSnarePattern1, 8u},
+};
+
+const SGFAudio::SongLane kGameplaySongLanes[] = {
+  {TITLE_BASS_VOICE, SGFAudio::makeProgramRef(kBassInstrument), kBassClips,
+   sizeof(kBassClips) / sizeof(kBassClips[0])},
+  {TITLE_KICK_VOICE, SGFAudio::makeProgramRef(kKickInstrument), kGameplayKickClips,
+   sizeof(kGameplayKickClips) / sizeof(kGameplayKickClips[0])},
+  {TITLE_SNARE_VOICE, SGFAudio::makeProgramRef(kSnareInstrument), kGameplaySnareClips,
+   sizeof(kGameplaySnareClips) / sizeof(kGameplaySnareClips[0])},
+  {TITLE_ORGAN1_VOICE, SGFAudio::makeProgramRef(kOrgan1Instrument), kOrgan1Clips,
+   sizeof(kOrgan1Clips) / sizeof(kOrgan1Clips[0])},
+  {TITLE_ORGAN2_VOICE, SGFAudio::makeProgramRef(kOrgan2Instrument), kOrgan2Clips,
+   sizeof(kOrgan2Clips) / sizeof(kOrgan2Clips[0])},
+};
+
 const SGFAudio::Song kTitleSong{
   kTitleSongLanes,
   sizeof(kTitleSongLanes) / sizeof(kTitleSongLanes[0]),
+  90u,
+  4u
+};
+
+const SGFAudio::Song kGameplaySong{
+  kGameplaySongLanes,
+  sizeof(kGameplaySongLanes) / sizeof(kGameplaySongLanes[0]),
   90u,
   4u
 };
@@ -335,14 +479,61 @@ void SokobanAudio::setup() {
 }
 
 void SokobanAudio::startTitleMusic() {
+  playSongAtVolume(190u);
+}
+
+void SokobanAudio::startGameplayMusic() {
   if (!enabled()) {
     return;
   }
+  music.setVolume(95u);
+  music.play(kGameplaySong);
+}
+
+void SokobanAudio::playPlayerMove() {
+  playSfx(kPlayerMoveSfx, 220.0f, 180u);
+}
+
+void SokobanAudio::playBoxMove() {
+  playSfx(kBoxMoveSfx, 123.47f, 230u);
+}
+
+void SokobanAudio::playBoxPlaced() {
+  playSfx(kBoxPlacedSfx, 392.0f, 255u);
+}
+
+void SokobanAudio::playLevelReset() {
+  playSfx(kLevelResetSfx, 220.0f, 240u);
+}
+
+void SokobanAudio::playLevelFinished() {
+  playSfx(kLevelFinishedSfx, 261.63f, 255u);
+}
+
+void SokobanAudio::playSongAtVolume(uint8_t volume) {
+  if (!enabled()) {
+    return;
+  }
+  music.setVolume(volume);
   music.play(kTitleSong);
 }
 
-void SokobanAudio::stopTitleMusic() {
-  music.stop();
+void SokobanAudio::playSfx(const SGFAudio::Sfx& sfx, float baseHz, uint8_t velocity) {
+  if (!enabled()) {
+    return;
+  }
+
+  int voice = nextSfxVoice;
+  for (int i = 0; i < SFX_VOICE_COUNT; ++i) {
+    int candidate = SFX_VOICE_START + ((nextSfxVoice - SFX_VOICE_START + i) % SFX_VOICE_COUNT);
+    if (!music.synth().voiceActive(candidate)) {
+      voice = candidate;
+      break;
+    }
+  }
+
+  music.synth().triggerSfx(voice, sfx, baseHz, velocity);
+  nextSfxVoice = SFX_VOICE_START + ((voice - SFX_VOICE_START + 1) % SFX_VOICE_COUNT);
 }
 
 bool SokobanAudio::enabled() const {
@@ -355,7 +546,17 @@ void SokobanAudio::setup() {}
 
 void SokobanAudio::startTitleMusic() {}
 
-void SokobanAudio::stopTitleMusic() {}
+void SokobanAudio::startGameplayMusic() {}
+
+void SokobanAudio::playPlayerMove() {}
+
+void SokobanAudio::playBoxMove() {}
+
+void SokobanAudio::playBoxPlaced() {}
+
+void SokobanAudio::playLevelReset() {}
+
+void SokobanAudio::playLevelFinished() {}
 
 bool SokobanAudio::enabled() const {
   return false;

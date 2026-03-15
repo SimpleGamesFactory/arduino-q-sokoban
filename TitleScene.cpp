@@ -11,7 +11,6 @@ void TitleScene::onEnter() {
 }
 
 void TitleScene::onExit() {
-  game.audio.stopTitleMusic();
 }
 
 void TitleScene::onInput(const InputEvent& event) {

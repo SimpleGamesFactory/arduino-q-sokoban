@@ -5,6 +5,7 @@
 PlayingScene::PlayingScene(SokobanGame& gameRef) : game(gameRef) {}
 
 void PlayingScene::onEnter() {
+  game.audio.startGameplayMusic();
   // `loadLevel()` marks dirty regions before entering the scene.
 }
 
@@ -17,6 +18,7 @@ void PlayingScene::onInput(const InputEvent& event) {
   }
 
   if (event.isActionJustPressed(game.fireAction)) {
+    game.audio.playLevelReset();
     game.loadLevel(game.currentLevel);
     return;
   }

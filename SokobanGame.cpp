@@ -291,6 +291,7 @@ bool SokobanGame::tryMove(int dx, int dy) {
   }
 
   bool pushed = false;
+  bool boxPlaced = false;
   int boxFromX = 0;
   int boxFromY = 0;
   int boxToX = 0;
@@ -316,6 +317,7 @@ bool SokobanGame::tryMove(int dx, int dy) {
     boxFromY = ny;
     boxToX = bx;
     boxToY = by;
+    boxPlaced = (beyond == '.');
     removeBoxAt(boxFromX, boxFromY);
     placeBoxAt(boxToX, boxToY);
   } else if (!isFreeForPlayer(next)) {
@@ -335,6 +337,15 @@ bool SokobanGame::tryMove(int dx, int dy) {
   }
 
   syncSpritesFromBoard();
+
+  if (pushed) {
+    audio.playBoxMove();
+    if (boxPlaced) {
+      audio.playBoxPlaced();
+    }
+  } else {
+    audio.playPlayerMove();
+  }
 
   levelMoves++;
   totalMoves++;
@@ -401,6 +412,7 @@ void SokobanGame::updateLevelSolvedState() {
   if (!levelSolved && remainingCrates == 0) {
     levelSolved = true;
     levelSolvedTimer = 0.0f;
+    audio.playLevelFinished();
     refreshOverlayTexts();
     markOverlayDirty();
     refreshHudTexts();
