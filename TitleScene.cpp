@@ -6,7 +6,12 @@ TitleScene::TitleScene(SokobanGame& gameRef) : game(gameRef) {}
 
 void TitleScene::onEnter() {
   game.resetActions();
+  game.audio.startTitleMusic();
   game.renderTitleScreen();
+}
+
+void TitleScene::onExit() {
+  game.audio.stopTitleMusic();
 }
 
 void TitleScene::onInput(const InputEvent& event) {

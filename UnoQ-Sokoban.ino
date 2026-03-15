@@ -12,8 +12,20 @@
 #include "SGFHardwarePresets.h"
 #include "SokobanGame.h"
 
+#if SGF_HW_PRESET == SGF_HW_PRESET_UNOQ_ILI9341_320X240
+static constexpr uint8_t SOKOBAN_AUDIO_OUT_PIN = 0xFF;
+#elif SGF_HW_PRESET == SGF_HW_PRESET_ESP32_ST7789_240X240
+static constexpr uint8_t SOKOBAN_AUDIO_OUT_PIN = 25u;
+#else
+#error "Unsupported SGF_HW_PRESET for Sokoban hardware config"
+#endif
+
 auto hardware = SGFHardwareProfile::makeRuntime();
-SokobanGame sokoban(hardware.renderTarget(), hardware.screen(), hardware.profile);
+SokobanGame sokoban(
+  hardware.renderTarget(),
+  hardware.screen(),
+  hardware.profile,
+  SOKOBAN_AUDIO_OUT_PIN);
 
 void setup() {
   hardware.display.begin(hardware.profile.display.spiHz);

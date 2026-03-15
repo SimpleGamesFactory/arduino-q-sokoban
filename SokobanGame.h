@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <SGF.h>
 
+#include "SokobanAudio.h"
 #include "PlayingScene.h"
 #include "GameOverScene.h"
 #include "TitleScene.h"
@@ -12,7 +13,8 @@ public:
   SokobanGame(
     IRenderTarget& renderTarget,
     IScreen& screen,
-    const SGFHardware::HardwareProfile& hardwareProfile);
+    const SGFHardware::HardwareProfile& hardwareProfile,
+    uint8_t audioOutputPin);
 
   void setup();
 
@@ -76,6 +78,7 @@ private:
   uint8_t pinUp = 0;
   uint8_t pinDown = 0;
   uint8_t pinFire = 0;
+  SokobanAudio audio;
   DebouncedInputPin leftPinInput;
   DebouncedInputPin rightPinInput;
   DebouncedInputPin upPinInput;

@@ -136,13 +136,15 @@ const SokobanGame::LevelDef SokobanGame::LEVELS[LEVEL_COUNT] = {
 SokobanGame::SokobanGame(
   IRenderTarget& renderTargetRef,
   IScreen& screenRef,
-  const SGFHardware::HardwareProfile& hardwareProfileIn)
+  const SGFHardware::HardwareProfile& hardwareProfileIn,
+  uint8_t audioOutputPin)
   : Game(FRAME_DEFAULT_STEP_US, FRAME_MAX_STEP_US),
     renderTarget(renderTargetRef),
     screen(screenRef),
     hardwareProfile(hardwareProfileIn),
     dirty(),
     renderer(renderTargetRef, dirty, MAX_TILE_W, MAX_TILE_H),
+    audio(audioOutputPin),
     actionBindings{
       {leftPinInput, leftAction},
       {rightPinInput, rightAction},
@@ -188,6 +190,7 @@ void SokobanGame::onSetup() {
   firePinInput.attach(pinFire);
 
   configureActions(actionBindings, sizeof(actionBindings) / sizeof(actionBindings[0]));
+  audio.setup();
 
   dirty.clear();
   switchScene(titleScene);
