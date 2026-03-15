@@ -3,20 +3,28 @@
 #if defined(ARDUINO_ARCH_ESP32) || defined(ESP32)
 namespace {
 
-constexpr float NOTE_C1 = 32.70f;
-constexpr float NOTE_D1 = 36.71f;
-constexpr float NOTE_F1 = 43.65f;
-constexpr float NOTE_G1 = 49.00f;
-constexpr float NOTE_AS1 = 58.27f;
+constexpr float NOTE_B0 = 30.87f;
+constexpr float NOTE_C2 = 65.41f;
+constexpr float NOTE_CS2 = 69.30f;
+constexpr float NOTE_D2 = 73.42f;
+constexpr float NOTE_DS2 = 77.78f;
+constexpr float NOTE_CS1 = 34.65f;
+constexpr float NOTE_DS1 = 38.89f;
+constexpr float NOTE_E1 = 41.20f;
+constexpr float NOTE_E2 = 82.41f;
+constexpr float NOTE_FS1 = 46.25f;
+constexpr float NOTE_GS2 = 103.83f;
+constexpr float NOTE_GS1 = 51.91f;
+constexpr float NOTE_A1 = 55.00f;
+constexpr float NOTE_A2 = 110.00f;
+constexpr float NOTE_AS2 = 116.54f;
+constexpr float NOTE_B1 = 61.74f;
+constexpr float NOTE_B2 = 123.47f;
+constexpr float NOTE_CS3 = 138.59f;
+constexpr float NOTE_DS3 = 155.56f;
+constexpr float NOTE_E3 = 164.81f;
 constexpr float NOTE_KICK = 46.0f;
 constexpr float NOTE_SNARE = 220.0f;
-constexpr float NOTE_C2 = 65.41f;
-constexpr float NOTE_D2 = 73.42f;
-constexpr float NOTE_F2 = 87.31f;
-constexpr float NOTE_G2 = 98.00f;
-constexpr float NOTE_AS2 = 116.54f;
-constexpr float NOTE_C3 = 130.81f;
-constexpr float NOTE_D3 = 146.83f;
 
 constexpr int TITLE_BASS_VOICE = 0;
 constexpr int TITLE_KICK_VOICE = 1;
@@ -102,167 +110,194 @@ constexpr SGFAudio::Instrument kOrgan2Instrument{
   54u
 };
 
-constexpr SGFAudio::PatternStep kBassPatternASteps[] = {
-  {NOTE_C1, 2u, 205u},
-  {0.0f, 2u, 0u},
-  {NOTE_G1, 2u, 205u},
-  {0.0f, 2u, 0u},
-  {NOTE_AS1, 2u, 210u},
-  {0.0f, 2u, 0u},
-  {NOTE_G1, 2u, 205u},
-  {0.0f, 2u, 0u},
+constexpr SGFAudio::PatternStep kBassPattern1Steps[] = {
+  {0.0f, 1u, 0u},
+  {0.0f, 1u, 0u},
+  {NOTE_A1, 1u, 210u},
+  {0.0f, 3u, 0u},
+  {NOTE_E1, 1u, 208u},
+  {0.0f, 3u, 0u},
+  {NOTE_A1, 1u, 210u},
+  {0.0f, 1u, 0u},
+  {0.0f, 1u, 0u},
+  {NOTE_E1, 1u, 208u},
+  {NOTE_FS1, 1u, 208u},
+  {NOTE_GS1, 1u, 214u},
 };
-constexpr SGFAudio::Pattern kBassPatternA{
-  kBassPatternASteps,
-  sizeof(kBassPatternASteps) / sizeof(kBassPatternASteps[0]),
+constexpr SGFAudio::Pattern kBassPattern1{
+  kBassPattern1Steps,
+  sizeof(kBassPattern1Steps) / sizeof(kBassPattern1Steps[0]),
   0u,
   false
 };
 
-constexpr SGFAudio::PatternStep kBassPatternBSteps[] = {
-  {NOTE_D1, 2u, 205u},
-  {0.0f, 2u, 0u},
-  {NOTE_AS1, 2u, 208u},
-  {0.0f, 2u, 0u},
-  {NOTE_F1, 2u, 208u},
-  {0.0f, 2u, 0u},
-  {NOTE_G1, 2u, 210u},
-  {0.0f, 2u, 0u},
+constexpr SGFAudio::PatternStep kBassPattern2Steps[] = {
+  {0.0f, 1u, 0u},
+  {0.0f, 1u, 0u},
+  {NOTE_E1, 1u, 210u},
+  {0.0f, 3u, 0u},
+  {NOTE_B0, 1u, 205u},
+  {0.0f, 3u, 0u},
+  {NOTE_E1, 1u, 210u},
+  {0.0f, 1u, 0u},
+  {0.0f, 1u, 0u},
+  {NOTE_B0, 1u, 205u},
+  {NOTE_CS1, 1u, 208u},
+  {NOTE_DS1, 1u, 214u},
 };
-constexpr SGFAudio::Pattern kBassPatternB{
-  kBassPatternBSteps,
-  sizeof(kBassPatternBSteps) / sizeof(kBassPatternBSteps[0]),
+constexpr SGFAudio::Pattern kBassPattern2{
+  kBassPattern2Steps,
+  sizeof(kBassPattern2Steps) / sizeof(kBassPattern2Steps[0]),
   0u,
   false
 };
 
-constexpr SGFAudio::PatternStep kKickSteps[] = {
+constexpr SGFAudio::PatternStep kKickPattern1Steps[] = {
   {NOTE_KICK, 1u, 255u},
-  {0.0f, 1u, 0u},
-  {0.0f, 1u, 0u},
-  {0.0f, 1u, 0u},
-  {NOTE_KICK, 1u, 248u},
-  {0.0f, 1u, 0u},
-  {0.0f, 1u, 0u},
-  {0.0f, 1u, 0u},
+  {0.0f, 3u, 0u},
   {NOTE_KICK, 1u, 255u},
-  {0.0f, 1u, 0u},
-  {0.0f, 1u, 0u},
-  {0.0f, 1u, 0u},
-  {NOTE_KICK, 1u, 244u},
-  {0.0f, 1u, 0u},
-  {NOTE_KICK, 1u, 230u},
-  {0.0f, 1u, 0u},
+  {0.0f, 3u, 0u},
+  {NOTE_KICK, 1u, 255u},
+  {0.0f, 3u, 0u},
+  {NOTE_KICK, 1u, 255u},
+  {0.0f, 3u, 0u},
 };
-constexpr SGFAudio::Pattern kKickPattern{
-  kKickSteps,
-  sizeof(kKickSteps) / sizeof(kKickSteps[0]),
+constexpr SGFAudio::Pattern kKickPattern1{
+  kKickPattern1Steps,
+  sizeof(kKickPattern1Steps) / sizeof(kKickPattern1Steps[0]),
   0u,
-  true
+  false
 };
 
-constexpr SGFAudio::PatternStep kSnareSteps[] = {
+constexpr SGFAudio::PatternStep kKickPattern2Steps[] = {
+  {NOTE_KICK, 1u, 255u},
+  {0.0f, 3u, 0u},
+  {NOTE_KICK, 1u, 250u},
+  {0.0f, 3u, 0u},
+  {NOTE_KICK, 1u, 255u},
+  {0.0f, 3u, 0u},
+  {NOTE_KICK, 1u, 250u},
+  {0.0f, 3u, 0u},
+};
+constexpr SGFAudio::Pattern kKickPattern2{
+  kKickPattern2Steps,
+  sizeof(kKickPattern2Steps) / sizeof(kKickPattern2Steps[0]),
+  0u,
+  false
+};
+
+constexpr SGFAudio::PatternStep kSnarePattern1Steps[] = {
+  {0.0f, 16u, 0u},
+};
+constexpr SGFAudio::Pattern kSnarePattern1{
+  kSnarePattern1Steps,
+  sizeof(kSnarePattern1Steps) / sizeof(kSnarePattern1Steps[0]),
+  0u,
+  false
+};
+
+constexpr SGFAudio::PatternStep kSnarePattern2Steps[] = {
   {0.0f, 1u, 0u},
-  {0.0f, 1u, 0u},
-  {NOTE_SNARE, 1u, 205u},
-  {0.0f, 1u, 0u},
-  {0.0f, 1u, 0u},
-  {0.0f, 1u, 0u},
-  {NOTE_SNARE, 1u, 220u},
-  {0.0f, 1u, 0u},
-  {0.0f, 1u, 0u},
-  {0.0f, 1u, 0u},
-  {NOTE_SNARE, 1u, 205u},
-  {0.0f, 1u, 0u},
-  {0.0f, 1u, 0u},
-  {0.0f, 1u, 0u},
+  {0.0f, 3u, 0u},
   {NOTE_SNARE, 1u, 225u},
+  {0.0f, 3u, 0u},
   {0.0f, 1u, 0u},
+  {0.0f, 3u, 0u},
+  {NOTE_SNARE, 1u, 225u},
+  {0.0f, 3u, 0u},
 };
-constexpr SGFAudio::Pattern kSnarePattern{
-  kSnareSteps,
-  sizeof(kSnareSteps) / sizeof(kSnareSteps[0]),
-  0u,
-  true
-};
-
-constexpr SGFAudio::PatternStep kOrgan1PhraseASteps[] = {
-  {NOTE_G2, 4u, 164u},
-  {NOTE_AS2, 4u, 170u},
-  {NOTE_C3, 4u, 176u},
-  {NOTE_G2, 4u, 166u},
-};
-constexpr SGFAudio::Pattern kOrgan1PhraseA{
-  kOrgan1PhraseASteps,
-  sizeof(kOrgan1PhraseASteps) / sizeof(kOrgan1PhraseASteps[0]),
+constexpr SGFAudio::Pattern kSnarePattern2{
+  kSnarePattern2Steps,
+  sizeof(kSnarePattern2Steps) / sizeof(kSnarePattern2Steps[0]),
   0u,
   false
 };
 
-constexpr SGFAudio::PatternStep kOrgan1PhraseBSteps[] = {
-  {NOTE_F2, 4u, 164u},
-  {NOTE_G2, 4u, 168u},
-  {NOTE_D3, 4u, 178u},
-  {NOTE_AS2, 4u, 170u},
+constexpr SGFAudio::PatternStep kOrgan1Pattern1Steps[] = {
+  {NOTE_CS3, 4u, 168u},
+  {0.0f, 4u, 0u},
+  {NOTE_DS3, 4u, 172u},
+  {NOTE_E3, 4u, 176u},
+  {NOTE_CS3, 4u, 168u},
+  {0.0f, 12u, 0u},
 };
-constexpr SGFAudio::Pattern kOrgan1PhraseB{
-  kOrgan1PhraseBSteps,
-  sizeof(kOrgan1PhraseBSteps) / sizeof(kOrgan1PhraseBSteps[0]),
+constexpr SGFAudio::Pattern kOrgan1Pattern1{
+  kOrgan1Pattern1Steps,
+  sizeof(kOrgan1Pattern1Steps) / sizeof(kOrgan1Pattern1Steps[0]),
   0u,
   false
 };
 
-constexpr SGFAudio::PatternStep kOrgan2PhraseASteps[] = {
-  {NOTE_C2, 2u, 150u},
-  {0.0f, 2u, 0u},
-  {NOTE_D2, 2u, 152u},
-  {0.0f, 2u, 0u},
-  {NOTE_F2, 2u, 156u},
-  {0.0f, 2u, 0u},
-  {NOTE_D2, 2u, 152u},
-  {0.0f, 2u, 0u},
+constexpr SGFAudio::PatternStep kOrgan2Pattern1Steps[] = {
+  {NOTE_A2, 4u, 156u},
+  {0.0f, 8u, 0u},
+  {NOTE_A2, 4u, 156u},
+  {NOTE_A2, 4u, 160u},
+  {0.0f, 8u, 0u},
+  {NOTE_E2, 1u, 154u},
+  {NOTE_DS2, 1u, 154u},
+  {NOTE_D2, 1u, 154u},
+  {NOTE_C2, 1u, 154u},
 };
-constexpr SGFAudio::Pattern kOrgan2PhraseA{
-  kOrgan2PhraseASteps,
-  sizeof(kOrgan2PhraseASteps) / sizeof(kOrgan2PhraseASteps[0]),
+constexpr SGFAudio::Pattern kOrgan2Pattern1{
+  kOrgan2Pattern1Steps,
+  sizeof(kOrgan2Pattern1Steps) / sizeof(kOrgan2Pattern1Steps[0]),
   0u,
   false
 };
 
-constexpr SGFAudio::PatternStep kOrgan2PhraseBSteps[] = {
-  {NOTE_AS1, 2u, 148u},
-  {0.0f, 2u, 0u},
-  {NOTE_C2, 2u, 150u},
-  {0.0f, 2u, 0u},
-  {NOTE_D2, 2u, 152u},
-  {0.0f, 2u, 0u},
-  {NOTE_C2, 2u, 150u},
-  {0.0f, 2u, 0u},
+constexpr SGFAudio::PatternStep kOrgan1Pattern2Steps[] = {
+  {NOTE_GS2, 4u, 168u},
+  {0.0f, 4u, 0u},
+  {NOTE_AS2, 4u, 172u},
+  {NOTE_B2, 4u, 176u},
+  {NOTE_GS2, 4u, 168u},
+  {0.0f, 12u, 0u},
 };
-constexpr SGFAudio::Pattern kOrgan2PhraseB{
-  kOrgan2PhraseBSteps,
-  sizeof(kOrgan2PhraseBSteps) / sizeof(kOrgan2PhraseBSteps[0]),
+constexpr SGFAudio::Pattern kOrgan1Pattern2{
+  kOrgan1Pattern2Steps,
+  sizeof(kOrgan1Pattern2Steps) / sizeof(kOrgan1Pattern2Steps[0]),
+  0u,
+  false
+};
+
+constexpr SGFAudio::PatternStep kOrgan2Pattern2Steps[] = {
+  {NOTE_E2, 4u, 156u},
+  {0.0f, 8u, 0u},
+  {NOTE_E2, 4u, 156u},
+  {NOTE_E2, 4u, 160u},
+  {0.0f, 8u, 0u},
+  {NOTE_B1, 1u, 154u},
+  {NOTE_CS2, 1u, 154u},
+  {NOTE_D2, 1u, 154u},
+  {NOTE_DS2, 1u, 154u},
+};
+constexpr SGFAudio::Pattern kOrgan2Pattern2{
+  kOrgan2Pattern2Steps,
+  sizeof(kOrgan2Pattern2Steps) / sizeof(kOrgan2Pattern2Steps[0]),
   0u,
   false
 };
 
 const SGFAudio::SongClip kBassClips[] = {
-  {&kBassPatternA, 1u},
-  {&kBassPatternB, 1u},
+  {&kBassPattern1, 4u},
+  {&kBassPattern2, 4u},
 };
 const SGFAudio::SongClip kKickClips[] = {
-  {&kKickPattern, 2u},
+  {&kKickPattern1, 4u},
+  {&kKickPattern2, 4u},
 };
 const SGFAudio::SongClip kSnareClips[] = {
-  {&kSnarePattern, 2u},
+  {&kSnarePattern1, 4u},
+  {&kSnarePattern2, 4u},
 };
 const SGFAudio::SongClip kOrgan1Clips[] = {
-  {&kOrgan1PhraseA, 1u},
-  {&kOrgan1PhraseB, 1u},
+  {&kOrgan1Pattern1, 2u},
+  {&kOrgan1Pattern2, 2u},
 };
 const SGFAudio::SongClip kOrgan2Clips[] = {
-  {&kOrgan2PhraseA, 1u},
-  {&kOrgan2PhraseB, 1u},
+  {&kOrgan2Pattern1, 2u},
+  {&kOrgan2Pattern2, 2u},
 };
 
 const SGFAudio::SongLane kTitleSongLanes[] = {
@@ -281,7 +316,7 @@ const SGFAudio::SongLane kTitleSongLanes[] = {
 const SGFAudio::Song kTitleSong{
   kTitleSongLanes,
   sizeof(kTitleSongLanes) / sizeof(kTitleSongLanes[0]),
-  84u,
+  90u,
   4u
 };
 
