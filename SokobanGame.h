@@ -35,6 +35,8 @@ private:
   static constexpr uint8_t LEVEL_COUNT = 10;
   static constexpr float LEVEL_SOLVED_DELAY_S = 0.75f;
   static constexpr int OVERLAY_H = 52;
+  static constexpr int BOX_SPRITE_SLOT_COUNT = SpriteLayer::MAX_SPRITES - 1;
+  static constexpr int PLAYER_SPRITE_SLOT = SpriteLayer::MAX_SPRITES - 1;
 
   static constexpr uint16_t COLOR_BG = Color565::rgb(8, 12, 18);
   static constexpr uint16_t COLOR_PANEL = Color565::rgb(14, 22, 32);
@@ -65,8 +67,7 @@ private:
   IScreen& screen;
   SGFHardware::HardwareProfile hardwareProfile;
   DirtyRects dirty;
-  TileFlusher flusher;
-  SpriteLayer sprites;
+  Renderer2D renderer;
   uint16_t regionBuf[MAX_TILE_W * MAX_TILE_H]{};
   uint16_t boxSpritePixels[SPRITE_SIZE * SPRITE_SIZE]{};
   uint16_t playerSpritePixels[SPRITE_SIZE * SPRITE_SIZE]{};
@@ -180,5 +181,5 @@ private:
   uint16_t overlayPixelAt(int x, int y) const;
   void renderHudTextToBuffer(BufferFillRect& fillRect) const;
   void renderOverlayTextToBuffer(BufferFillRect& fillRect) const;
-  void renderRegionToBuffer(int x0, int y0, int w, int h, uint16_t* buf);
+  void renderBackgroundToBuffer(int x0, int y0, int w, int h, uint16_t* buf);
 };

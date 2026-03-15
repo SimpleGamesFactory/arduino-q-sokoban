@@ -109,9 +109,6 @@ constexpr int HUD_STATUS_Y = 24;
 constexpr int OVERLAY_TEXT1_Y_OFF = 10;
 constexpr int OVERLAY_TEXT2_Y_OFF = 30;
 
-constexpr int BOX_SPRITE_SLOT_COUNT = SpriteLayer::kMaxSprites - 1;
-constexpr int PLAYER_SPRITE_SLOT = SpriteLayer::kMaxSprites - 1;
-
 int fitCenteredScale(int screenWidth, const char* text, int maxScale, int margin) {
   for (int scale = maxScale; scale >= 1; --scale) {
     if (FontRenderer::textWidth(FONT_5X7, text, scale) <= screenWidth - margin * 2) {
@@ -145,8 +142,7 @@ SokobanGame::SokobanGame(
     screen(screenRef),
     hardwareProfile(hardwareProfileIn),
     dirty(),
-    flusher(dirty, MAX_TILE_W, MAX_TILE_H),
-    sprites(),
+    renderer(renderTargetRef, dirty, MAX_TILE_W, MAX_TILE_H),
     actionBindings{
       {leftPinInput, leftAction},
       {rightPinInput, rightAction},
@@ -162,6 +158,19 @@ SokobanGame::SokobanGame(
   pinUp = hardwareProfile.input.up;
   pinDown = hardwareProfile.input.down;
   pinFire = hardwareProfile.input.fire;
+
+  renderer.setBackgroundRenderer([this](int x0,
+                                        int y0,
+                                        int w,
+                                        int h,
+                                        int32_t worldX0,
+                                        int32_t worldY0,
+                                        uint16_t* buf) {
+    (void)worldX0;
+    (void)worldY0;
+    renderBackgroundToBuffer(x0, y0, w, h, buf);
+  });
+  renderer.setRegionBuffer(regionBuf);
 
   buildSpritePixels();
   initSpriteSlots();
@@ -596,13 +605,11 @@ void SokobanGame::markRectDirty(int x, int y, int w, int h) {
 }
 
 void SokobanGame::invalidatePlayingScreen() {
-  dirty.invalidate(renderTarget);
+  renderer.invalidate();
 }
 
 void SokobanGame::flushDirty() {
-  flusher.flush(renderTarget, regionBuf, [this](int x0, int y0, int w, int h, uint16_t* buf) {
-    renderRegionToBuffer(x0, y0, w, h, buf);
-  });
+  renderer.render();
 }
 
 void SokobanGame::buildSpritePixels() {
@@ -658,31 +665,24 @@ void SokobanGame::buildSpritePixels() {
 }
 
 void SokobanGame::initSpriteSlots() {
-  sprites.clearAll();
   for (int i = 0; i < BOX_SPRITE_SLOT_COUNT; i++) {
-    auto& s = sprites.sprite(i);
-    s.active = false;
-    s.w = SPRITE_SIZE;
-    s.h = SPRITE_SIZE;
-    s.pixels565 = boxSpritePixels;
-    s.transparent = 0;
-    s.scale = SpriteLayer::Scale::Normal;
-    s.setAnchor(0.0f, 0.0f);
+    Renderer2D::SpriteHandle sprite = renderer.sprite(i);
+    sprite.setActive(false);
+    sprite.setBitmap(boxSpritePixels, SPRITE_SIZE, SPRITE_SIZE, 0);
+    sprite.setScale(SpriteScale::Normal);
+    sprite.setAnchor(Vector2f{0.0f, 0.0f});
   }
 
-  auto& p = sprites.sprite(PLAYER_SPRITE_SLOT);
-  p.active = false;
-  p.w = SPRITE_SIZE;
-  p.h = SPRITE_SIZE;
-  p.pixels565 = playerSpritePixels;
-  p.transparent = 0;
-  p.scale = SpriteLayer::Scale::Normal;
-  p.setAnchor(0.0f, 0.0f);
+  Renderer2D::SpriteHandle playerSprite = renderer.sprite(PLAYER_SPRITE_SLOT);
+  playerSprite.setActive(false);
+  playerSprite.setBitmap(playerSpritePixels, SPRITE_SIZE, SPRITE_SIZE, 0);
+  playerSprite.setScale(SpriteScale::Normal);
+  playerSprite.setAnchor(Vector2f{0.0f, 0.0f});
 }
 
 void SokobanGame::syncSpritesFromBoard() {
   for (int i = 0; i < BOX_SPRITE_SLOT_COUNT; i++) {
-    sprites.sprite(i).active = false;
+    renderer.sprite(i).setActive(false);
   }
 
   int slot = 0;
@@ -694,17 +694,21 @@ void SokobanGame::syncSpritesFromBoard() {
       if (slot >= BOX_SPRITE_SLOT_COUNT) {
         continue;
       }
-      auto& s = sprites.sprite(slot++);
-      s.active = true;
-      s.setPosition(boardX0 + x * tileSize + spriteInset(), boardY0 + y * tileSize + spriteInset());
+      Renderer2D::SpriteHandle sprite = renderer.sprite(slot++);
+      sprite.setPosition(Vector2i{
+        boardX0 + x * tileSize + spriteInset(),
+        boardY0 + y * tileSize + spriteInset(),
+      });
+      sprite.setActive(true);
     }
   }
 
-  auto& p = sprites.sprite(PLAYER_SPRITE_SLOT);
-  p.active = true;
-  p.setPosition(
+  Renderer2D::SpriteHandle playerSprite = renderer.sprite(PLAYER_SPRITE_SLOT);
+  playerSprite.setPosition(Vector2i{
     boardX0 + playerX * tileSize + spriteInset(),
-    boardY0 + playerY * tileSize + spriteInset());
+    boardY0 + playerY * tileSize + spriteInset(),
+  });
+  playerSprite.setActive(true);
 }
 
 int SokobanGame::textWidth(const char* text, int scale) const {
@@ -871,7 +875,7 @@ void SokobanGame::renderOverlayTextToBuffer(BufferFillRect& fillRect) const {
                          overlaySubText, 1, COLOR_TEXT_DIM);
 }
 
-void SokobanGame::renderRegionToBuffer(int x0, int y0, int w, int h, uint16_t* buf) {
+void SokobanGame::renderBackgroundToBuffer(int x0, int y0, int w, int h, uint16_t* buf) {
   for (int yy = 0; yy < h; yy++) {
     int y = y0 + yy;
     for (int xx = 0; xx < w; xx++) {
@@ -882,8 +886,6 @@ void SokobanGame::renderRegionToBuffer(int x0, int y0, int w, int h, uint16_t* b
 
   BufferFillRect fillRect(x0, y0, w, h, buf);
   renderHudTextToBuffer(fillRect);
-
-  sprites.renderRegion(x0, y0, w, h, buf);
 
   if (levelSolved) {
     for (int yy = 0; yy < h; yy++) {
